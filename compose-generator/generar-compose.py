@@ -12,6 +12,8 @@ services:
       - LOGGING_LEVEL=DEBUG
     networks:
       - testing_net
+    volumes:
+      - ./server/config.ini:/config.ini
 """
 
 NETWORK_YAML = """
@@ -36,6 +38,8 @@ CLIENT_YML = """
       - testing_net
     depends_on:
       - server
+    volumes:
+    - ./client/config.yaml:/config.yaml
 """
 
 def generate_script(file_destination, num_clients):

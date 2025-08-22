@@ -10,6 +10,8 @@ services:
       - LOGGING_LEVEL=DEBUG
     networks:
       - testing_net
+    volumes:
+      - ./server/config.ini:/config.ini
 
 client1:
     container_name: client1
@@ -22,6 +24,8 @@ client1:
     - SERVER_IP=server
     networks:
     - testing_net
+    volumes:
+    - ./client/config.yaml:/config.yaml
 
 networks:
   testing_net:
