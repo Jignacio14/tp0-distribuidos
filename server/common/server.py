@@ -61,7 +61,7 @@ class Server:
         logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
         return c
 
-    def __handle_sigterm(self):
+    def __handle_sigterm(self, signum, frame):
         logging.info("action: shutdown | result: in_progress")
         try:
             if self._server_socket: 
