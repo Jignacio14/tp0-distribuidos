@@ -21,13 +21,15 @@ class Server:
         communication with a client. After client with communucation
         finishes, servers starts to accept new connections again
         """
-
-        # TODO: Modify this program to handle signal to graceful shutdown
-        # the server
-        while self._is_running:
-            self._client_socket = self.__accept_new_connection()
-            self.__handle_client_connection(self._client_socket)
-            self._client_socket = None
+        try:
+            # TODO: Modify this program to handle signal to graceful shutdown
+            # the server
+            while self._is_running:
+                self._client_socket = self.__accept_new_connection()
+                self.__handle_client_connection(self._client_socket)
+                self._client_socket = None
+        except OSError as skt_err:
+            self._is_running = False
 
     def __handle_client_connection(self, client_sock):
         """
