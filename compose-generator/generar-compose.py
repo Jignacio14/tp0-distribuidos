@@ -25,17 +25,17 @@ networks:
 """
 
 CLIENT_YML = """
-client{id}:
-    container_name: client{id}
+  client{id}:
+    container_name: client1
     image: client:latest
     entrypoint: /client
     environment:
-    - PYTHONUNBUFFERED=1
-    - LOGGING_LEVEL=DEBUG
-    - CLIENT_ID=client{id}
-    - SERVER_IP=server
+      - CLI_ID={id}
+      - CLI_LOG_LEVEL=DEBUG
     networks:
-    - testing_net
+      - testing_net
+    depends_on:
+      - server
 """
 
 def generate_script(file_destination, num_clients):
