@@ -1,3 +1,5 @@
+import sys
+
 YAML_BODY = """"
 name: tp0
 services:
@@ -30,3 +32,17 @@ networks:
       config:
         - subnet: 172.25.125.0/24
 """
+
+def generate_script(file_destination, num_clients):
+    print("Client number:", num_clients)
+    print("File destination:", file_destination)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("You should call this script as: ./generar-compose.py <output_file> <num_clients>")
+        sys.exit(1)
+    
+    file_destination = sys.argv[1]
+    client_nums = int(sys.argv[2])
+    generate_script(file_destination, client_nums)
+
