@@ -3,7 +3,7 @@
 MESSAGE="Hola probando 1 2 3, echooooooo"
 PORT=12345
 EXECUTION=$(docker run --rm --network="tp0_testing_net" busybox:latest sh -c "echo $MESSAGE | nc server $PORT " )
-RESULT="failed"
+RESULT="fail"
 
 if [ "$EXECUTION" == "$MESSAGE" ]; then
     RESULT="success"
