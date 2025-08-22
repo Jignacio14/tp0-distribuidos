@@ -7,23 +7,21 @@ services:
     entrypoint: python3 /main.py
     environment:
       - PYTHONUNBUFFERED=1
-      - LOGGING_LEVEL=DEBUG
     networks:
       - testing_net
     volumes:
       - ./server/config.ini:/config.ini
 
-client1:
+  client1:
     container_name: client1
     image: client:latest
     entrypoint: /client
     environment:
-    - PYTHONUNBUFFERED=1
-    - LOGGING_LEVEL=DEBUG
-    - CLIENT_ID=client1
-    - SERVER_IP=server
+      - CLI_ID=1
     networks:
-    - testing_net
+      - testing_net
+    depends_on:
+      - server
     volumes:
     - ./client/config.yaml:/config.yaml
 
