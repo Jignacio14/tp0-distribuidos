@@ -24,17 +24,19 @@ type ClientConfig struct {
 
 // Client Entity that encapsulates how
 type Client struct {
-	config  ClientConfig
-	conn    net.Conn
-	sigChan chan os.Signal
+	config    ClientConfig
+	conn      net.Conn
+	sigChan   chan os.Signal
+	isRunning bool
 }
 
 // NewClient Initializes a new client receiving the configuration
 // as a parameter
 func NewClient(config ClientConfig) *Client {
 	client := &Client{
-		config:  config,
-		sigChan: make(chan os.Signal, 1),
+		config:    config,
+		sigChan:   make(chan os.Signal, 1),
+		isRunning: true,
 	}
 	signal.Notify(client.sigChan, syscall.SIGTERM)
 	return client
@@ -59,6 +61,7 @@ func (c *Client) createClientSocket() error {
 func (c *Client) Shutdown() {
 	<-c.sigChan
 	close(c.sigChan)
+	c.isRunning = false
 	if c.conn != nil {
 		c.conn.Close()
 	}
@@ -71,6 +74,9 @@ func (c *Client) StartClientLoop() {
 	// Messages if the message amount threshold has not been surpassed
 	go c.Shutdown()
 	for msgID := 1; msgID <= c.config.LoopAmount; msgID++ {
+		if !c.isRunning {
+			return
+		}
 		// Create the connection the server in every loop iteration. Send an
 		c.createClientSocket()
 
