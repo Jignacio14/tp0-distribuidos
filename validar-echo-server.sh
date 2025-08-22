@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MESSAGE="Hola probando 1 2 3, echooooooo"
+MESSAGE="Prueba 123456"
 PORT=12345
 EXECUTION=$(docker run --rm --network="tp0_testing_net" busybox:latest sh -c "echo $MESSAGE | nc server $PORT " )
 RESULT="fail"
