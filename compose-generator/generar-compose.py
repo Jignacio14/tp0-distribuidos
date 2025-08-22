@@ -28,7 +28,7 @@ CLIENT_YML = """
 client{id}:
     container_name: client{id}
     image: client:latest
-    entrypoint: python3 /main.py
+    entrypoint: /client
     environment:
     - PYTHONUNBUFFERED=1
     - LOGGING_LEVEL=DEBUG
