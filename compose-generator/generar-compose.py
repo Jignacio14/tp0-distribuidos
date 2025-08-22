@@ -26,7 +26,7 @@ networks:
 
 CLIENT_YML = """
   client{id}:
-    container_name: client1
+    container_name: client{id}
     image: client:latest
     entrypoint: /client
     environment:
