@@ -5,7 +5,7 @@ PORT=12345
 EXECUTION=$(docker run --rm --network="tp0_testing_net" busybox:latest sh -c "echo $MESSAGE | nc server $PORT " )
 RESULT="fail"
 
-if [ "$EXECUTION" == "$MESSAGE" ]; then
+if [ "$EXECUTION" = "$MESSAGE" ]; then
     RESULT="success"
 fi
 
