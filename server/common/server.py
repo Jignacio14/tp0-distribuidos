@@ -66,12 +66,17 @@ class Server:
 
     def __handle_sigterm(self, signum, frame):
         try:
-            self._client_socket = self.__close_skt(self._client_socket)
-            self._server_socket = self.__close_skt(self._server_socket)
-            self._is_running = False
+            logging.info("action: shutdown | result: in_progress")
+            self.__shutdown()
+            logging.info("action: shutdown | result: success")
         except Exception as e:
             logging.error(f"action: shutdown | result: fail | error: {e}")
             return
+
+    def __shutdown(self):
+        self._client_socket = self.__close_skt(self._client_socket)
+        self._server_socket = self.__close_skt(self._server_socket)
+        self._is_running = False
 
     def __close_skt(self, skt): 
         if not skt:
