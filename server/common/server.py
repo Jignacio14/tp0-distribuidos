@@ -10,6 +10,7 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self._client_socket = None
+        self._is_running = True
         signal.signal(signal.SIGTERM, self.__handle_sigterm)
 
     def run(self):
@@ -23,7 +24,7 @@ class Server:
 
         # TODO: Modify this program to handle signal to graceful shutdown
         # the server
-        while True:
+        while self._is_running:
             self._client_socket = self.__accept_new_connection()
             self.__handle_client_connection(self._client_socket)
             self._client_socket = None
@@ -62,15 +63,19 @@ class Server:
         return c
 
     def __handle_sigterm(self, signum, frame):
-        logging.info("action: shutdown | result: in_progress")
         try:
-            if self._server_socket: 
-                self._server_socket.close()
-                self._server_socket = None
-            if self._client_socket:
-                self._client_socket.close()
-                self._client_socket = None
+            self._client_socket = self.__close_skt(self._client_socket)
+            self._server_socket = self.__close_skt(self._server_socket)
+            self._is_running = False
         except Exception as e:
             logging.error(f"action: shutdown | result: fail | error: {e}")
             return
 
+    def __close_skt(self, skt): 
+        if not skt:
+            return
+        try:
+            skt.close()
+        except Exception as e:
+            logging.error(f"action: close_socket | result: fail | error: {e}")
+        return
