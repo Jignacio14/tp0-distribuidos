@@ -1,3 +1,4 @@
+import signal
 import socket
 import logging
 
@@ -8,6 +9,7 @@ class Server:
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
+        signal.signal(signal.SIGTERM, self.__handle_sigterm)
 
     def run(self):
         """
@@ -56,3 +58,12 @@ class Server:
         c, addr = self._server_socket.accept()
         logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
         return c
+
+    def __handle_sigterm(self):
+        logging.info("action: shutdown | result: in_progress")
+        try:
+            logging.info("action: shutdown | result: success")
+            self._server_socket.close()
+        except Exception as e:
+            return
+
