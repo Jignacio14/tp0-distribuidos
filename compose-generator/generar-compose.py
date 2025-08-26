@@ -1,5 +1,10 @@
 import sys
 
+NAMES = ["Alan", "Ada", "Linus", "Grace", "Tim"]
+LASTNAMES = ["Turing", "Lovelace", "Torvalds", "Hopper", "Berners-Lee"]
+BIRTHDATES = ["1912-06-23", "1815-12-10", "1969-12-28", "1906-12-09", "1955-06-08"]
+NUMBERS = [42, 17, 7, 8080, 80]
+
 SERVER_YAML = """
 name: tp0
 services:
@@ -32,6 +37,10 @@ CLIENT_YML = """
     entrypoint: /client
     environment:
       - CLI_ID={id}
+      - CLI_NAME={name}
+      - CLI_LASTNAME={lastname}
+      - CLI_BIRTHDATE={birthdate}
+      - CLI_NUMBER={number}
     networks:
       - testing_net
     depends_on:
@@ -52,7 +61,10 @@ def write_in_file(yml: str, file):
 
 def write_dinamically(num_clients: int, file):
     for i in range(num_clients):
-        yaml = CLIENT_YML.format(id=i + 1)
+        yaml = CLIENT_YML.format(id=i + 1, name=NAMES[i % len(NAMES)], 
+                                 lastname=LASTNAMES[i % len(LASTNAMES)], 
+                                 birthdate=BIRTHDATES[i % len(BIRTHDATES)], 
+                                 number=NUMBERS[i % len(NUMBERS)])
         write_in_file(yaml, file)
 
 if __name__ == "__main__":
