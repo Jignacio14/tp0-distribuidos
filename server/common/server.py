@@ -2,6 +2,10 @@ import signal
 import socket
 import logging
 
+from common.protocol import ServerProtocol
+from common.utils import store_bets
+
+
 
 class Server:
     def __init__(self, port, listen_backlog):
@@ -9,7 +13,7 @@ class Server:
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
-        self._client_socket = None
+        self._client = None
         self._is_running = True
         signal.signal(signal.SIGTERM, self.__handle_sigterm)
 
@@ -25,13 +29,13 @@ class Server:
             # TODO: Modify this program to handle signal to graceful shutdown
             # the server
             while self._is_running:
-                self._client_socket = self.__accept_new_connection()
-                self.__handle_client_connection(self._client_socket)
+                self._client = self.__accept_new_connection()
+                self.__handle_client_connection(self._client)
                 self._client_socket = None
         except OSError as skt_err:
             self._is_running = False
 
-    def __handle_client_connection(self, client_sock):
+    def __handle_client_connection(self, client):
         """
         Read message from a specific client socket and closes the socket
 
@@ -39,16 +43,21 @@ class Server:
         client socket will also be closed
         """
         try:
-            # TODO: Modify the receive to avoid short-reads
-            msg = client_sock.recv(1024).rstrip().decode('utf-8')
-            addr = client_sock.getpeername()
-            logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {msg}')
-            # TODO: Modify the send to avoid short-writes
-            client_sock.send("{}\n".format(msg).encode('utf-8'))
+            bet = client.receive_client_info()
+            if not bet: 
+                logging.error("action: receive_message | result: fail | error: invalid_bet")
+                client.send_confirmation(False)
+                return
+            
+            store_bets([bet])   
+            logging.info(f"action: receive_message | result: success | bet: {bet}")
+            client.send_confirmation(True)
+
         except OSError as e:
             logging.error("action: receive_message | result: fail | error: {e}")
         finally:
-            client_sock.close()
+            client.shutdown()
+            self._client = None
 
     def __accept_new_connection(self):
         """
@@ -62,7 +71,8 @@ class Server:
         logging.info('action: accept_connections | result: in_progress')
         c, addr = self._server_socket.accept()
         logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
-        return c
+        protocol = ServerProtocol(c)
+        return protocol
 
     def __handle_sigterm(self, signum, frame):
         try:

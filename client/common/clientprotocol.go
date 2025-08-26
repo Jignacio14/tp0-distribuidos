@@ -17,6 +17,7 @@ func NewProtocol(serverAdr string) (*Protocol, error) {
 }
 
 func (p *Protocol) SendClientInfo(clientInfo string) error {
+	clientInfo += "\n"
 	data := []byte(clientInfo)
 	return p.sendAll(data)
 }
