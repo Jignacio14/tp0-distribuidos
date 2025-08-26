@@ -29,9 +29,7 @@ func (p *Protocol) ReceiveConfirmation() bool {
 		return false
 	}
 
-	code := string(response)
-
-	return code == "OK"
+	return string(response) == "OK"
 }
 
 func (p *Protocol) sendAll(data []byte) error {
