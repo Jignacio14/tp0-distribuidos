@@ -18,6 +18,11 @@ services:
     entrypoint: /client
     environment:
       - CLI_ID=1
+      - NAME=Jose Ignacio 
+      - LASTNAME=Castro Martinez
+      - DOCUMENT=9599
+      - BIRTHDATE=2001-14-07
+      - NUMBER=777
     networks:
       - testing_net
     depends_on:
