@@ -14,11 +14,11 @@ type Bet struct {
 }
 
 func newBet() *Bet {
-	name := os.Getenv("NAME")
-	lastname := os.Getenv("LASTNAME")
-	document := os.Getenv("DOCUMENT")
-	birthdate := os.Getenv("BIRTHDATE")
-	number := os.Getenv("NUMBER")
+	name := os.Getenv("CLI_NAME")
+	lastname := os.Getenv("CLI_LASTNAME")
+	document := os.Getenv("CLI_DOCUMENT")
+	birthdate := os.Getenv("CLI_BIRTHDATE")
+	number := os.Getenv("CLI_NUMBER")
 
 	return &Bet{
 		name:      name,

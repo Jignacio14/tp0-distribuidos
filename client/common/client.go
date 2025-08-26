@@ -75,7 +75,7 @@ func (c *Client) StartClientLoop() {
 	go c.Shutdown()
 	bet := newBet()
 	serialized := bet.serialize()
-	log.Infof("client bet: %s", serialized)
+	log.Infof("Action Log client Bet: %s", serialized)
 	for msgID := 1; msgID <= c.config.LoopAmount; msgID++ {
 		if !c.isRunning {
 			return

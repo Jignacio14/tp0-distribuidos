@@ -2,6 +2,7 @@ import sys
 
 NAMES = ["Alan", "Ada", "Linus", "Grace", "Tim"]
 LASTNAMES = ["Turing", "Lovelace", "Torvalds", "Hopper", "Berners-Lee"]
+DOCUMENTS = ["12345678", "87654321", "11223344", "44332211", "56789012"]
 BIRTHDATES = ["1912-06-23", "1815-12-10", "1969-12-28", "1906-12-09", "1955-06-08"]
 NUMBERS = [42, 17, 7, 8080, 80]
 
@@ -39,6 +40,7 @@ CLIENT_YML = """
       - CLI_ID={id}
       - CLI_NAME={name}
       - CLI_LASTNAME={lastname}
+      - CLI_DOCUMENT={document}
       - CLI_BIRTHDATE={birthdate}
       - CLI_NUMBER={number}
     networks:
@@ -62,7 +64,8 @@ def write_in_file(yml: str, file):
 def write_dinamically(num_clients: int, file):
     for i in range(num_clients):
         yaml = CLIENT_YML.format(id=i + 1, name=NAMES[i % len(NAMES)], 
-                                 lastname=LASTNAMES[i % len(LASTNAMES)], 
+                                 lastname=LASTNAMES[i % len(LASTNAMES)],
+                                  document=DOCUMENTS[i % len(DOCUMENTS)], 
                                  birthdate=BIRTHDATES[i % len(BIRTHDATES)], 
                                  number=NUMBERS[i % len(NUMBERS)])
         write_in_file(yaml, file)
