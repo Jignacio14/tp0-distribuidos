@@ -81,7 +81,7 @@ if __name__ == "__main__":
         print(f"Compose file '{file_destination}' generated with {client_nums} clients.")
         sys.exit(0)
     except ValueError as err: 
-        print("You should provide a valid integer for the number of clients.")
+        print("You should provide a valid integer for the number of clients.", err)
         sys.exit(1)
     except Exception as e:
         print("An unexpected error occurred:", e)
