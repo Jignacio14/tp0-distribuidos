@@ -73,6 +73,9 @@ func (c *Client) StartClientLoop() {
 	// There is an autoincremental msgID to identify every message sent
 	// Messages if the message amount threshold has not been surpassed
 	go c.Shutdown()
+	bet := newBet()
+	serialized := bet.serialize()
+	log.Infof("client bet: %s", serialized)
 	for msgID := 1; msgID <= c.config.LoopAmount; msgID++ {
 		if !c.isRunning {
 			return
