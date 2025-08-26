@@ -56,7 +56,7 @@ func (c *Client) Shutdown() {
 	<-c.sigChan
 	close(c.sigChan)
 	c.isRunning = false
-	c.protocol.shutdown()
+	c.protocol.Shutdown()
 	log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
 }
 
@@ -74,7 +74,7 @@ func (c *Client) StartClientLoop() {
 		}
 
 		bet := newBet()
-		err := c.protocol.sendAll([]byte(bet.serialize()))
+		err := c.protocol.SendClientInfo(bet.serialize())
 
 		if err != nil {
 			log.Errorf("action: send_message | result: fail | client_id: %v | error: %v",
@@ -84,10 +84,9 @@ func (c *Client) StartClientLoop() {
 			return
 		}
 
-		response := make([]byte, 1)
-		lenght, err := c.protocol.receiveAll(1, response)
+		confirmation := c.protocol.ReceiveConfirmation()
 
-		if err != nil || lenght != 1 {
+		if confirmation {
 			log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
 				c.config.ID,
 				err,

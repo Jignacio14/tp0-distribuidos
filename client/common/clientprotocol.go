@@ -16,6 +16,24 @@ func NewProtocol(serverAdr string) (*Protocol, error) {
 	return protocol, nil
 }
 
+func (p *Protocol) SendClientInfo(clientInfo string) error {
+	data := []byte(clientInfo)
+	return p.sendAll(data)
+}
+
+func (p *Protocol) ReceiveConfirmation() bool {
+	response := make([]byte, 2)
+	lenght, err := p.receiveAll(2, response)
+
+	if err == nil || lenght != 2 {
+		return false
+	}
+
+	code := string(response)
+
+	return code == "OK"
+}
+
 func (p *Protocol) sendAll(data []byte) error {
 
 	len := len(data)
@@ -45,7 +63,7 @@ func (p *Protocol) receiveAll(len uint, array []byte) (int, error) {
 	return received, nil
 }
 
-func (p *Protocol) shutdown() {
+func (p *Protocol) Shutdown() {
 	if p.conn == nil {
 		return
 	}
