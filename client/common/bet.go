@@ -1,26 +1,31 @@
+package common
+
+import (
+	"fmt"
+	"os"
+)
 
 type Bet struct {
-	name string 
-	lastname string
-	document string 
+	name      string
+	lastname  string
+	document  string
 	birthdate string
-	number string 
+	number    string
 }
 
-
 func newBet() *Bet {
-	name string := os.Getenv("NAME")
-	lastname string := os.Getenv("LASTNAME")
-	document string := os.Getenv("DOCUMENT")
-	birthdate string := os.Getenv("BIRTHDATE")
-	number string := os.Getenv("NUMBER")
+	name := os.Getenv("NAME")
+	lastname := os.Getenv("LASTNAME")
+	document := os.Getenv("DOCUMENT")
+	birthdate := os.Getenv("BIRTHDATE")
+	number := os.Getenv("NUMBER")
 
 	return &Bet{
-		name: name,
-		lastname: lastname,
-		document: document,
+		name:      name,
+		lastname:  lastname,
+		document:  document,
 		birthdate: birthdate,
-		number: number,
+		number:    number,
 	}
 }
 
