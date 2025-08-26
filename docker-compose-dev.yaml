@@ -12,6 +12,24 @@ services:
     volumes:
       - ./server/config.ini:/config.ini
 
+  client1:
+    container_name: client1
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=1
+      - CLI_NAME=Alan
+      - CLI_LASTNAME=Turing
+      - CLI_DOCUMENT=12345678
+      - CLI_BIRTHDATE=1912-06-23
+      - CLI_NUMBER=42
+    networks:
+      - testing_net
+    depends_on:
+      - server
+    volumes:
+    - ./client/config.yaml:/config.yaml
+
 networks:
   testing_net:
     ipam:

@@ -1,9 +1,6 @@
 package common
 
 import (
-	"bufio"
-	"fmt"
-	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -25,46 +22,41 @@ type ClientConfig struct {
 // Client Entity that encapsulates how
 type Client struct {
 	config    ClientConfig
-	conn      net.Conn
 	sigChan   chan os.Signal
 	isRunning bool
+	protocol  *Protocol
 }
 
 // NewClient Initializes a new client receiving the configuration
 // as a parameter
 func NewClient(config ClientConfig) *Client {
-	client := &Client{
-		config:    config,
-		sigChan:   make(chan os.Signal, 1),
-		isRunning: true,
-	}
-	signal.Notify(client.sigChan, syscall.SIGTERM)
-	return client
-}
 
-// CreateClientSocket Initializes client socket. In case of
-// failure, error is printed in stdout/stderr and exit 1
-// is returned
-func (c *Client) createClientSocket() error {
-	conn, err := net.Dial("tcp", c.config.ServerAddress)
+	protocol, err := NewProtocol(config.ServerAddress)
+
 	if err != nil {
-		log.Criticalf(
-			"action: connect | result: fail | client_id: %v | error: %v",
-			c.config.ID,
+		log.Criticalf("action: init | result: fail | client_id: %v | error: %v",
+			config.ID,
 			err,
 		)
+		return nil
 	}
-	c.conn = conn
-	return nil
+
+	client := &Client{
+		sigChan:   make(chan os.Signal, 1),
+		isRunning: true,
+		protocol:  protocol,
+		config:    config,
+	}
+
+	signal.Notify(client.sigChan, syscall.SIGTERM)
+	return client
 }
 
 func (c *Client) Shutdown() {
 	<-c.sigChan
 	close(c.sigChan)
 	c.isRunning = false
-	if c.conn != nil {
-		c.conn.Close()
-	}
+	c.protocol.shutdown()
 	log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
 }
 
@@ -73,27 +65,29 @@ func (c *Client) StartClientLoop() {
 	// There is an autoincremental msgID to identify every message sent
 	// Messages if the message amount threshold has not been surpassed
 	go c.Shutdown()
-	bet := newBet()
-	serialized := bet.serialize()
-	log.Infof("Action Log client Bet: %s", serialized)
 	for msgID := 1; msgID <= c.config.LoopAmount; msgID++ {
+
+		log.Infof("Starting loop iteration %d", msgID)
+
 		if !c.isRunning {
 			return
 		}
-		// Create the connection the server in every loop iteration. Send an
-		c.createClientSocket()
 
-		// TODO: Modify the send to avoid short-write
-		fmt.Fprintf(
-			c.conn,
-			"[CLIENT %v] Message N°%v\n",
-			c.config.ID,
-			msgID,
-		)
-		msg, err := bufio.NewReader(c.conn).ReadString('\n')
-		c.conn.Close()
+		bet := newBet()
+		err := c.protocol.sendAll([]byte(bet.serialize()))
 
 		if err != nil {
+			log.Errorf("action: send_message | result: fail | client_id: %v | error: %v",
+				c.config.ID,
+				err,
+			)
+			return
+		}
+
+		response := make([]byte, 1)
+		lenght, err := c.protocol.receiveAll(1, response)
+
+		if err != nil || lenght != 1 {
 			log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
 				c.config.ID,
 				err,
@@ -101,12 +95,6 @@ func (c *Client) StartClientLoop() {
 			return
 		}
 
-		log.Infof("action: receive_message | result: success | client_id: %v | msg: %v",
-			c.config.ID,
-			msg,
-		)
-
-		// Wait a time between sending one message and the next one
 		time.Sleep(c.config.LoopPeriod)
 
 	}
