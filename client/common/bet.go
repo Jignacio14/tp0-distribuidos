@@ -30,5 +30,5 @@ func newBet() *Bet {
 }
 
 func (bet Bet) serialize() string {
-	return fmt.Sprintf("%s,%s,%s,%s,%s", bet.name, bet.lastname, bet.document, bet.birthdate, bet.number)
+	return fmt.Sprintf("%s,%s,%s,%s,%s\n", bet.name, bet.lastname, bet.document, bet.birthdate, bet.number)
 }
