@@ -5,7 +5,7 @@ import logging
 from common.protocol import ServerProtocol
 from common.utils import store_bets
 
-
+from common.utils import Bet
 
 class Server:
     def __init__(self, port, listen_backlog):
@@ -33,6 +33,7 @@ class Server:
                 self.__handle_client_connection(self._client)
                 self._client_socket = None
         except OSError as skt_err:
+            logging.error(f"action: server_loop | result: fail | error: {skt_err}")
             self._is_running = False
 
     def __handle_client_connection(self, client):
@@ -43,7 +44,7 @@ class Server:
         client socket will also be closed
         """
         try:
-            bet = client.receive_client_info()
+            bet: Bet = client.receive_client_info()
             if not bet: 
                 logging.error("action: receive_message | result: fail | error: invalid_bet")
                 client.send_confirmation(False)
@@ -52,9 +53,9 @@ class Server:
             store_bets([bet])   
             logging.info(f"action: receive_message | result: success | bet: {bet}")
             client.send_confirmation(True)
-
+            logging.info(f"action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}")
         except OSError as e:
-            logging.error("action: receive_message | result: fail | error: {e}")
+            logging.error(f"action: receive_message | result: fail | error: {e}")
         finally:
             client.shutdown()
             self._client = None
