@@ -28,7 +28,7 @@ func (p *Protocol) ReceiveConfirmation() bool {
 	response := make([]byte, 2)
 	_, err := p.receiveAll(2, response)
 
-	if err == nil {
+	if err != nil {
 		return false
 	}
 
