@@ -1,6 +1,8 @@
 package common
 
-import "net"
+import (
+	"net"
+)
 
 type Protocol struct {
 	conn net.Conn
@@ -24,10 +26,10 @@ func (p *Protocol) SendClientInfo(clientInfo string) error {
 
 func (p *Protocol) ReceiveConfirmation() bool {
 	response := make([]byte, 2)
-	lenght, err := p.receiveAll(2, response)
+	_, err := p.receiveAll(2, response)
 
-	if err == nil || lenght != 2 {
-		return false
+	if err == nil {
+		return true
 	}
 
 	return string(response) == "OK"
