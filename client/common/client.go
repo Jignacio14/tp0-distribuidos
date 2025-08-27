@@ -65,37 +65,32 @@ func (c *Client) StartClientLoop() {
 	// There is an autoincremental msgID to identify every message sent
 	// Messages if the message amount threshold has not been surpassed
 	go c.Shutdown()
-	for msgID := 1; msgID <= c.config.LoopAmount; msgID++ {
 
-		log.Infof("Starting loop iteration %d", msgID)
-
-		if !c.isRunning {
-			return
-		}
-
-		bet := newBet()
-		err := c.protocol.SendClientInfo(bet.serialize())
-
-		if err != nil {
-			log.Errorf("action: send_message | result: fail | client_id: %v | error: %v",
-				c.config.ID,
-				err,
-			)
-			return
-		}
-
-		confirmation := c.protocol.ReceiveConfirmation()
-
-		if confirmation {
-			log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
-				c.config.ID,
-				err,
-			)
-			return
-		}
-
-		time.Sleep(c.config.LoopPeriod)
-
+	if !c.isRunning {
+		return
 	}
-	log.Infof("action: loop_finished | result: success | client_id: %v", c.config.ID)
+
+	bet := newBet()
+	err := c.protocol.SendClientInfo(bet.serialize())
+
+	if err != nil {
+		log.Errorf("action: send_message | result: fail | client_id: %v | error: %v",
+			c.config.ID,
+			err,
+		)
+		return
+	}
+
+	confirmation := c.protocol.ReceiveConfirmation()
+
+	if !confirmation {
+		log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
+			c.config.ID,
+			confirmation,
+		)
+		return
+	}
+
+	log.Infof("action: apuesta_enviada | result: success | dni: %v | numero: %v", bet.document, bet.number)
+	c.protocol.Shutdown()
 }
