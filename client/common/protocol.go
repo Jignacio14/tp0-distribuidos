@@ -29,7 +29,7 @@ func (p *Protocol) ReceiveConfirmation() bool {
 	_, err := p.receiveAll(2, response)
 
 	if err == nil {
-		return true
+		return false
 	}
 
 	return string(response) == "OK"
