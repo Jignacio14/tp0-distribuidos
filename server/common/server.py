@@ -33,8 +33,10 @@ class Server:
                 self.__handle_client_connection(self._client)
                 self._client_socket = None
         except OSError as skt_err:
-            logging.error(f"action: server_loop | result: fail | error: {skt_err}")
+            logging.debug(f"action: server_loop | error: {skt_err}")
             self._is_running = False
+        finally:
+            self.__shutdown()
 
     def __handle_client_connection(self, client):
         """
