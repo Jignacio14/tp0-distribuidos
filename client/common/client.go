@@ -1,6 +1,7 @@
 package common
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,6 +18,7 @@ type ClientConfig struct {
 	ServerAddress string
 	LoopAmount    int
 	LoopPeriod    time.Duration
+	maxBatchSize  int
 }
 
 // Client Entity that encapsulates how
@@ -64,7 +66,7 @@ func (c *Client) Shutdown() {
 func (c *Client) StartClientLoop() {
 	go c.Shutdown()
 	defer c.protocol.Shutdown()
-	filepath := ""
+	filepath := fmt.Sprintf(".data/agency-%s.bets", c.config.ID)
 
 	batchGenerator, err := NewBatchGenerator(filepath)
 
@@ -73,11 +75,9 @@ func (c *Client) StartClientLoop() {
 		return
 	}
 
-	limit := 1000
-
 	for batchGenerator.IsReading() {
 
-		batch, err := batchGenerator.Read(limit)
+		batch, err := batchGenerator.Read(c.config.maxBatchSize)
 
 		if err != nil {
 			log.Errorf("action: read_batch | result: fail | client_id: %v | error: %v", c.config.ID, err)
@@ -92,12 +92,14 @@ func (c *Client) StartClientLoop() {
 			return
 		}
 
-		confirmation := c.protocol.ReceiveConfirmation()
-
-		if !confirmation {
-			log.Errorf("action: receive_confirmation | result: fail | client_id: %v", c.config.ID)
-			return
-		}
-
 	}
+
+	confirmation := c.protocol.ReceiveConfirmation()
+
+	if !confirmation {
+		log.Errorf("action: receive_confirmation | result: fail | client_id: %v", c.config.ID)
+		return
+	}
+
+	log.Infof("action: complete | result: success | client_id: %v", c.config.ID)
 }
