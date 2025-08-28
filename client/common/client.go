@@ -79,6 +79,8 @@ func (c *Client) StartClientLoop() {
 
 		batch, err := batchGenerator.Read(c.config.maxBatchSize)
 
+		log.Infof("Batch read with size: %v", batch.Size())
+
 		if err != nil {
 			log.Errorf("action: read_batch | result: fail | client_id: %v | error: %v", c.config.ID, err)
 			return
@@ -92,6 +94,7 @@ func (c *Client) StartClientLoop() {
 			return
 		}
 
+		log.Infof("Batch send %v, %v", c.config.ID, batch.Size())
 	}
 
 	confirmation := c.protocol.ReceiveConfirmation()
