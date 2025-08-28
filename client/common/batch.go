@@ -27,7 +27,7 @@ func NewBatch(max int) *Batch {
 
 // private method to check if a new bet can be appended to the batch
 func (b *Batch) canAppend(serialize string) bool {
-	return len(b.bets)+1 < b.max && len(serialize) < b.size
+	return len(b.bets)+1 <= b.max && len(serialize) < b.size
 }
 
 // Adds a new bet if it does not exceed the batch size limit
