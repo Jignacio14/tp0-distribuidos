@@ -21,8 +21,8 @@ func NewBatchGenerator(filePath string) (*BatchGenerator, error) {
 	return &BatchGenerator{
 		file:      file,
 		scanner:   bufio.NewScanner(file),
-		currLine:  0,
-		isReading: false,
+		currLine:  1,
+		isReading: true,
 	}, nil
 }
 
@@ -32,7 +32,7 @@ func (bg *BatchGenerator) IsReading() bool {
 
 func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
 	batch := NewBatch(batchSize)
-	currLine := 0
+	currLine := 1
 
 	for bg.scanner.Scan() {
 
@@ -43,7 +43,6 @@ func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
 
 		betStr := bg.scanner.Text()
 		bet, err := betFromString(betStr)
-
 		if err != nil {
 			return nil, err
 		}
