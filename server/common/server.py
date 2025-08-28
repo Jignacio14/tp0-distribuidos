@@ -63,7 +63,7 @@ class Server:
             client.shutdown()
             self._client = None
 
-    def __create_bet_from_message(self, message: str) -> Bet | None:
+    def __create_bet_from_message(self, message: str):
         try:
             msg_parts = message.split(',')
             return Bet(msg_parts[0], msg_parts[1], msg_parts[2], msg_parts[3], msg_parts[4], msg_parts[5])
