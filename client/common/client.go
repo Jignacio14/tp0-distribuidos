@@ -100,6 +100,8 @@ func (c *Client) StartClientLoop() {
 
 	}
 
+	time.Sleep(c.config.LoopPeriod)
+
 	err = c.protocol.SendEndOfBatch()
 
 	if err != nil {
