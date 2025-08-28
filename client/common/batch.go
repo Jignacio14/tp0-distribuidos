@@ -37,7 +37,6 @@ func (b *Batch) AddBet(bet Bet) error {
 	serialize := bet.serialize()
 
 	if !b.canAppend(serialize) {
-		log.Info("action: add_bet | result: fail | error: batch_size_exceeded")
 		return fmt.Errorf("batch size exceeded")
 	}
 
