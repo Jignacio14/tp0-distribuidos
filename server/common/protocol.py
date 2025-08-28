@@ -25,12 +25,7 @@ class ServerProtocol:
     
     def receive_client_info(self):
         try:
-            msg = self.__receive_until_delimiter()
-            msg_parts = msg.split(',')
-            if len(msg_parts) != 6:
-                return None
-            
-            return Bet(msg_parts[0], msg_parts[1], msg_parts[2], msg_parts[3], msg_parts[4], msg_parts[5])
+            return self.__receive_until_delimiter()
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
             return None 

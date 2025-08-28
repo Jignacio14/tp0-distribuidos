@@ -46,12 +46,13 @@ class Server:
         client socket will also be closed
         """
         try:
-            bet: Bet = client.receive_client_info()
+            serialized_bet = client.receive_client_info()
+            bet = self.__create_bet_from_message(serialized_bet)
             if not bet: 
                 logging.error("action: receive_message | result: fail | error: invalid_bet")
                 client.send_confirmation(False)
                 return
-            
+
             store_bets([bet])   
             logging.info(f"action: receive_message | result: success | bet: {bet}")
             client.send_confirmation(True)
@@ -61,6 +62,14 @@ class Server:
         finally:
             client.shutdown()
             self._client = None
+
+    def __create_bet_from_message(self, message: str) -> Bet | None:
+        try:
+            msg_parts = message.split(',')
+            return Bet(msg_parts[0], msg_parts[1], msg_parts[2], msg_parts[3], msg_parts[4], msg_parts[5])
+        except Exception as e:
+            logging.error(f"action: parse_bet | result: fail | error: {e}")
+            return None
 
     def __accept_new_connection(self):
         """
