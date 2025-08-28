@@ -67,7 +67,6 @@ func (c *Client) StartClientLoop() {
 	go c.Shutdown()
 	defer c.protocol.Shutdown()
 	filepath := fmt.Sprintf(".data/agency-%v.csv", c.config.ID)
-	log.Infof("Tengo tama;o: %v", c.config.MaxBatchSize)
 	batchGenerator, err := NewBatchGenerator(filepath)
 
 	if err != nil {
