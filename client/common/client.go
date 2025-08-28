@@ -62,8 +62,6 @@ func (c *Client) Shutdown() {
 
 // StartClientLoop Send messages to the client until some time threshold is met
 func (c *Client) StartClientLoop() {
-	// There is an autoincremental msgID to identify every message sent
-	// Messages if the message amount threshold has not been surpassed
 	go c.Shutdown()
 	defer c.protocol.Shutdown()
 	filepath := ""
