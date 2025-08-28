@@ -33,8 +33,7 @@ class Server:
                 self._client = self.__accept_new_connection()
                 self.__handle_client_connection(self._client)
                 self._client_socket = None
-        except OSError as skt_err:
-            logging.debug(f"action: server_loop | error: {skt_err}")
+        except OSError as _:
             self._is_running = False
         finally:
             self.__shutdown()
