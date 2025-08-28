@@ -65,32 +65,41 @@ func (c *Client) StartClientLoop() {
 	// There is an autoincremental msgID to identify every message sent
 	// Messages if the message amount threshold has not been surpassed
 	go c.Shutdown()
+	defer c.protocol.Shutdown()
+	filepath := ""
 
-	if !c.isRunning {
-		return
-	}
-
-	bet := newBet()
-	err := c.protocol.SendClientInfo(bet.serialize())
+	batchGenerator, err := NewBatchGenerator(filepath)
 
 	if err != nil {
-		log.Errorf("action: send_message | result: fail | client_id: %v | error: %v",
-			c.config.ID,
-			err,
-		)
+		log.Errorf("action: batch_generator_init | result: fail | client_id: %v | error: %v", c.config.ID, err)
 		return
 	}
 
-	confirmation := c.protocol.ReceiveConfirmation()
+	limit := 1000
 
-	if !confirmation {
-		log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
-			c.config.ID,
-			confirmation,
-		)
-		return
+	for batchGenerator.IsReading() {
+
+		batch, err := batchGenerator.Read(limit)
+
+		if err != nil {
+			log.Errorf("action: read_batch | result: fail | client_id: %v | error: %v", c.config.ID, err)
+			return
+		}
+
+		batchStr := batch.Serialize()
+		err = c.protocol.SendBatch(batchStr)
+
+		if err != nil {
+			log.Errorf("action: send_batch | result: fail | client_id: %v | error: %v", c.config.ID, err)
+			return
+		}
+
+		confirmation := c.protocol.ReceiveConfirmation()
+
+		if !confirmation {
+			log.Errorf("action: receive_confirmation | result: fail | client_id: %v", c.config.ID)
+			return
+		}
+
 	}
-
-	log.Infof("action: apuesta_enviada | result: success | dni: %v | numero: %v", bet.document, bet.number)
-	c.protocol.Shutdown()
 }

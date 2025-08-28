@@ -24,6 +24,12 @@ func (p *Protocol) SendClientInfo(clientInfo string) error {
 	return p.sendAll(data)
 }
 
+func (p *Protocol) SendBatch(batchStr string) error {
+	batchStr += "\000"
+	data := []byte(batchStr)
+	return p.sendAll(data)
+}
+
 func (p *Protocol) ReceiveConfirmation() bool {
 	response := make([]byte, 2)
 	_, err := p.receiveAll(2, response)

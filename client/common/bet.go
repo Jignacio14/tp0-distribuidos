@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 type Bet struct {
@@ -31,6 +32,25 @@ func newBet() *Bet {
 		birthdate: birthdate,
 		number:    number,
 	}
+}
+
+func betFromString(bet string) (*Bet, error) {
+	parts := strings.Split(bet, ",")
+
+	if len(parts) != 6 {
+		return nil, fmt.Errorf("invalid bet format")
+	}
+
+	agency := os.Getenv("CLI_ID")
+
+	return &Bet{
+		agency:    agency,
+		name:      parts[0],
+		lastname:  parts[1],
+		document:  parts[2],
+		birthdate: parts[3],
+		number:    parts[4],
+	}, nil
 }
 
 func (bet Bet) serialize() string {
