@@ -85,10 +85,11 @@ func (c *Client) StartClientLoop() {
 		}
 
 		batchStr := batch.Serialize()
+
 		if batchStr == "" {
-			log.Errorf("Serialice vacio")
+			continue
 		}
-		log.Infof("serializado: %v", batchStr)
+
 		err = c.protocol.SendBatch(batchStr)
 
 		if err != nil {

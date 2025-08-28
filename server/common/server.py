@@ -47,7 +47,6 @@ class Server:
         """
         try:
             serialized_bet = client.receive_client_info()
-            logging.debug(f"action: parse_bet | result: in_progress | message: {str(serialized_bet)}")
             bets, read = self.__create_bet_from_message(serialized_bet)
             if len(bets) == 0: 
                 logging.error(f"action: apuesta_recibida | result: fail | cantidad: ${read}")
@@ -55,7 +54,7 @@ class Server:
                 return
 
             store_bets(bets)   
-            logging.info(f"action: apuesta_recibida | result: success | cantidad: ${len(bets)}")
+            logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
             client.send_confirmation(True)
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
@@ -67,12 +66,10 @@ class Server:
         bets = []
         counter = 0
         try:
-            msg_bets = message.split('/n')
+            msg_bets = message.split('\n')
             for bet_parts in msg_bets:
-                logging.debug(f"action: parse_bet | result: in_progress | bet_parts: {bet_parts}")
                 bet_parts = bet_parts.split(',')
                 if len(bet_parts) != 6:
-                    logging.error(f"action: parse_bet | result: fail | bet_parts: {bet_parts}")
                     return [], counter
                 bet = Bet(bet_parts[0], bet_parts[1], bet_parts[2], bet_parts[3], bet_parts[4], bet_parts[5])
                 bets.append(bet)
