@@ -6,10 +6,11 @@ import (
 )
 
 type BatchGenerator struct {
-	file      *os.File
-	scanner   *bufio.Scanner
-	currLine  int
-	isReading bool
+	file         *os.File
+	scanner      *bufio.Scanner
+	currLine     int
+	isReading    bool
+	lastLineRead string
 }
 
 func NewBatchGenerator(filePath string) (*BatchGenerator, error) {
@@ -19,10 +20,11 @@ func NewBatchGenerator(filePath string) (*BatchGenerator, error) {
 	}
 
 	return &BatchGenerator{
-		file:      file,
-		scanner:   bufio.NewScanner(file),
-		currLine:  1,
-		isReading: true,
+		file:         file,
+		scanner:      bufio.NewScanner(file),
+		currLine:     1,
+		isReading:    true,
+		lastLineRead: "",
 	}, nil
 }
 
@@ -32,20 +34,11 @@ func (bg *BatchGenerator) IsReading() bool {
 
 func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
 	batch := NewBatch(batchSize)
-	currLine := 1
 
 	log.Info("Valores al leer batch inicio: %v ", bg.currLine)
 
-	for bg.scanner.Scan() {
-
-		if currLine < bg.currLine {
-			currLine++
-			bg.scanner.Text()
-			continue
-		}
-
-		betStr := bg.scanner.Text()
-		bet, err := betFromString(betStr)
+	if bg.lastLineRead != "" {
+		bet, err := betFromString(bg.lastLineRead)
 		if err != nil {
 			return nil, err
 		}
@@ -58,10 +51,28 @@ func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
 			return batch, nil
 		}
 
+		bg.lastLineRead = ""
+	}
+
+	for bg.scanner.Scan() {
+
+		betStr := bg.scanner.Text()
+		bet, err := betFromString(betStr)
+		if err != nil {
+			return nil, err
+		}
+
+		err = batch.AddBet(*bet)
+
+		if err != nil {
+			bg.lastLineRead = betStr
+			log.Info("Valores al leer batch alcanzo limite: %v ", bg.currLine)
+			log.Info("Batch lleno con %v apuestas", batch.Serialize())
+			return batch, nil
+		}
+
 		log.Info("Valores al leer durante: %v ", bg.currLine)
 		log.Info("Batch con %v apuestas", batch.Serialize())
-		bg.currLine++
-		currLine++
 	}
 
 	log.Info("Valores al leer batch fin: %v", bg.currLine)
