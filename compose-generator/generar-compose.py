@@ -49,6 +49,7 @@ CLIENT_YML = """
       - server
     volumes:
     - ./client/config.yaml:/config.yaml
+    - ./.data:/.data
 """
 
 def generate_script(file_destination, num_clients):
