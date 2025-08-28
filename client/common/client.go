@@ -18,7 +18,7 @@ type ClientConfig struct {
 	ServerAddress string
 	LoopAmount    int
 	LoopPeriod    time.Duration
-	maxBatchSize  int
+	MaxBatchSize  int
 }
 
 // Client Entity that encapsulates how
@@ -67,7 +67,7 @@ func (c *Client) StartClientLoop() {
 	go c.Shutdown()
 	defer c.protocol.Shutdown()
 	filepath := fmt.Sprintf(".data/agency-%v.csv", c.config.ID)
-
+	log.Infof("Tengo tama;o: %v", c.config.MaxBatchSize)
 	batchGenerator, err := NewBatchGenerator(filepath)
 
 	if err != nil {
@@ -77,9 +77,7 @@ func (c *Client) StartClientLoop() {
 
 	for batchGenerator.IsReading() {
 
-		batch, err := batchGenerator.Read(c.config.maxBatchSize)
-
-		log.Infof("Batch read with size: %v", batch.Size())
+		batch, err := batchGenerator.Read(c.config.MaxBatchSize)
 
 		if err != nil {
 			log.Errorf("action: read_batch | result: fail | client_id: %v | error: %v", c.config.ID, err)
@@ -87,6 +85,10 @@ func (c *Client) StartClientLoop() {
 		}
 
 		batchStr := batch.Serialize()
+		if batchStr == "" {
+			log.Errorf("Serialice vacio")
+		}
+		log.Infof("serializado: %v", batchStr)
 		err = c.protocol.SendBatch(batchStr)
 
 		if err != nil {
@@ -94,7 +96,6 @@ func (c *Client) StartClientLoop() {
 			return
 		}
 
-		log.Infof("Batch send %v, %v", c.config.ID, batch.Size())
 	}
 
 	confirmation := c.protocol.ReceiveConfirmation()
