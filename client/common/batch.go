@@ -41,7 +41,6 @@ func (b *Batch) AddBet(bet Bet) error {
 
 	b.bets = append(b.bets, serialize)
 	b.size -= len(serialize)
-	log.Infof("action: add_bet | result: success | current_batch_size: %v | bet: %v", len(b.bets), serialize)
 	return nil
 }
 

@@ -67,7 +67,6 @@ class Server:
         bets = []
         errors = 0
         try:
-            logging.info(f"{message}")
             for bet in message.split('\n'):
                 bet_parts = bet.split(',')
                 if bet_parts == ['']:

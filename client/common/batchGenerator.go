@@ -35,8 +35,6 @@ func (bg *BatchGenerator) IsReading() bool {
 func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
 	batch := NewBatch(batchSize)
 
-	log.Info("Valores al leer batch inicio: %v ", bg.currLine)
-
 	if bg.lastLineRead != "" {
 		bet, err := betFromString(bg.lastLineRead)
 		if err != nil {
@@ -46,8 +44,6 @@ func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
 		err = batch.AddBet(*bet)
 
 		if err != nil {
-			log.Info("Valores al leer batch alcanzo limite: %v ", bg.currLine)
-			log.Info("Batch lleno con %v apuestas", batch.Serialize())
 			return batch, nil
 		}
 
@@ -66,18 +62,10 @@ func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
 
 		if err != nil {
 			bg.lastLineRead = betStr
-			log.Info("Valores al leer batch alcanzo limite: %v ", bg.currLine)
-			log.Info("Batch lleno con %v apuestas", batch.Serialize())
 			return batch, nil
 		}
 
-		log.Info("Valores al leer durante: %v ", bg.currLine)
-		log.Info("Batch con %v apuestas", batch.Serialize())
 	}
-
-	log.Info("Valores al leer batch fin: %v", bg.currLine)
-
-	log.Info("Batch con %v apuestas al final", batch.Serialize())
 
 	bg.isReading = false
 	return batch, nil
