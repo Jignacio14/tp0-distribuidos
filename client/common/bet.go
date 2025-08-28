@@ -37,7 +37,7 @@ func newBet() *Bet {
 func betFromString(bet string) (*Bet, error) {
 	parts := strings.Split(bet, ",")
 
-	if len(parts) != 6 {
+	if len(parts) != 5 {
 		return nil, fmt.Errorf("invalid bet format")
 	}
 

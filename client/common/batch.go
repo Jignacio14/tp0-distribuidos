@@ -37,16 +37,14 @@ func (b *Batch) AddBet(bet Bet) error {
 	serialize := bet.serialize()
 
 	if !b.canAppend(serialize) {
+		log.Info("action: add_bet | result: fail | error: batch_size_exceeded")
 		return fmt.Errorf("batch size exceeded")
 	}
 
 	b.bets = append(b.bets, serialize)
 	b.currSize += len(serialize)
+	log.Infof("action: add_bet | result: success | current_batch_size: %v | bet: %v", len(b.bets), serialize)
 	return nil
-}
-
-func (b *Batch) Size() int {
-	return b.currSize
 }
 
 // Serializes the batch into a string, with bets separated by new lines
