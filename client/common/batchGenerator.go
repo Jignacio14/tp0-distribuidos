@@ -71,6 +71,6 @@ func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
 	return batch, nil
 }
 
-func (bg *BatchGenerator) Close() error {
-	return bg.file.Close()
+func (bg *BatchGenerator) Close() {
+	bg.file.Close()
 }

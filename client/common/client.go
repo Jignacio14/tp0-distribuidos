@@ -68,6 +68,7 @@ func (c *Client) StartClientLoop() {
 	defer c.protocol.Shutdown()
 	filepath := fmt.Sprintf(".data/agency-%v.csv", c.config.ID)
 	batchGenerator, err := NewBatchGenerator(filepath)
+	defer batchGenerator.Close()
 
 	if err != nil {
 		log.Errorf("action: batch_generator_init | result: fail | client_id: %v | error: %v", c.config.ID, err)
