@@ -2,7 +2,7 @@ import logging
 import socket
 
 
-DELIMITER = '\n'
+DELIMITER = '\000'
 
 
 class ServerProtocol:
