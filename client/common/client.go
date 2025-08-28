@@ -100,7 +100,6 @@ func (c *Client) StartClientLoop() {
 
 	}
 
-	log.Infof("action: send_all_batches | result: success | client_id: %v", c.config.ID)
 	err = c.protocol.SendEndOfBatch()
 
 	if err != nil {
