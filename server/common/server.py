@@ -70,6 +70,8 @@ class Server:
             logging.info(f"{message}")
             for bet in message.split('\n'):
                 bet_parts = bet.split(',')
+                if bet_parts == ['']:
+                    continue
                 if len(bet_parts) != 6:
                     logging.error(f"action: parse_bet | result: fail | error: invalid_bet_format | bet_parts: {bet_parts}")
                     errors += 1
