@@ -55,6 +55,7 @@ func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
 		}
 
 		bg.currLine++
+		currLine++
 	}
 
 	bg.isReading = false
