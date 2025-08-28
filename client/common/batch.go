@@ -34,7 +34,7 @@ func (b *Batch) canAppend(serialize string) bool {
 // returns an error if the bet cannot be added
 func (b *Batch) AddBet(bet Bet) error {
 	serialize := bet.serialize()
-
+	serialize = strings.Trim(serialize, "\n")
 	if !b.canAppend(serialize) {
 		return fmt.Errorf("batch size exceeded")
 	}

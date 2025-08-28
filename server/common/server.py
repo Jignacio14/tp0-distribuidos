@@ -46,6 +46,7 @@ class Server:
         client socket will also be closed
         """
         try:
+
             serialized_bet = client.receive_client_info()
             bets, read = self.__create_bet_from_message(serialized_bet)
             if len(bets) == 0: 
@@ -64,22 +65,23 @@ class Server:
 
     def __create_bet_from_message(self, message: str):
         bets = []
-        counter = 0
+        errors = 0
         try:
-            msg_bets = message.split('\n')
-            logging.debug(f"La logitud es: {len(msg_bets)} y son: {msg_bets}")
-            for bet_parts in msg_bets:
-                bet_parts = bet_parts.split(',')
+            logging.info(f"{message}")
+            for bet in message.split('\n'):
+                bet_parts = bet.split(',')
                 if len(bet_parts) != 6:
                     logging.error(f"action: parse_bet | result: fail | error: invalid_bet_format | bet_parts: {bet_parts}")
-                    return [], counter
+                    errors += 1
+                    continue
+
                 bet = Bet(bet_parts[0], bet_parts[1], bet_parts[2], bet_parts[3], bet_parts[4], bet_parts[5])
                 bets.append(bet)
-                counter += 1
-            return bets, counter
+        
+            return bets, errors
         except Exception as e:
             logging.error(f"action: parse_bet | result: fail | error: {e}")
-            return [], counter
+            return bets, errors
 
     def __accept_new_connection(self):
         """

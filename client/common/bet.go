@@ -35,6 +35,7 @@ func newBet() *Bet {
 }
 
 func betFromString(bet string) (*Bet, error) {
+	bet = strings.TrimSuffix(bet, "\n")
 	parts := strings.Split(bet, ",")
 
 	if len(parts) != 5 {

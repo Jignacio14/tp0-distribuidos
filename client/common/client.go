@@ -98,6 +98,14 @@ func (c *Client) StartClientLoop() {
 
 	}
 
+	log.Infof("action: send_all_batches | result: success | client_id: %v", c.config.ID)
+	err = c.protocol.SendEndOfBatch()
+
+	if err != nil {
+		log.Errorf("action: send_end_of_batch | result: fail | client_id: %v | error: %v", c.config.ID, err)
+		return
+	}
+
 	confirmation := c.protocol.ReceiveConfirmation()
 
 	if !confirmation {

@@ -25,8 +25,12 @@ func (p *Protocol) SendClientInfo(clientInfo string) error {
 }
 
 func (p *Protocol) SendBatch(batchStr string) error {
-	batchStr += "\000"
 	data := []byte(batchStr)
+	return p.sendAll(data)
+}
+
+func (p *Protocol) SendEndOfBatch() error {
+	data := []byte("\000")
 	return p.sendAll(data)
 }
 
