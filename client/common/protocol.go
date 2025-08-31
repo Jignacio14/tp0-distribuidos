@@ -13,6 +13,7 @@ const (
 	sendBatchCode          byte = 0x01
 	receivedBatchOKCode    byte = 0x02
 	receivedBatchNotOKCode byte = 0x03
+	endOfBatch             byte = 0x04
 )
 
 func NewProtocol(serverAdr string) (*Protocol, error) {
@@ -62,6 +63,22 @@ func (p *Protocol) ReceiveConfirmation() bool {
 	}
 
 	return response[0] == receivedBatchOKCode
+}
+
+func (p *Protocol) ReceivedConStatus() (bool, error) {
+	response := make([]byte, 1)
+	err := p.receiveAll(response)
+
+	if err != nil {
+		return false, err
+	}
+
+	return response[0] == receivedBatchOKCode, nil
+}
+
+func (p *Protocol) EndSedingBets() error {
+	opCode := []byte{endOfBatch}
+	return p.sendAll(opCode)
 }
 
 func (p *Protocol) sendAll(data []byte) error {

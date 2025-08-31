@@ -49,6 +49,21 @@ class ServerProtocol:
         batch_bytes = self.__receive_all(length)
         return batch_bytes.decode('utf-8')
 
+    def send_bad_bets(self, count: int):
+        try:
+            self._client_skt.sendall(BATCH_RECEIVED_FAIL_CODE.to_bytes(1, byteorder='big'))
+            # self._client_skt.sendall(count.to_bytes(4, byteorder='big'))
+        except OSError as e:
+            logging.error(f"action: send_bad_bets | result: fail | error: {e}")
+
+    def send_batches_received_successfully(self, bets_count: int):
+        try:
+            self._client_skt.sendall(BATCH_RECEIVED_OK_CODE.to_bytes(1, byteorder='big'))
+            # self._client_skt.sendall(bets_count.to_bytes(4, byteorder='big'))
+        except OSError as e:
+            logging.error(f"action: send_batches_received_successfully | result: fail | error: {e}")
+            return
+
     def __receive_all(self, len: int) -> bytes:
         bytes = bytearray()
         while len(bytes) < len:

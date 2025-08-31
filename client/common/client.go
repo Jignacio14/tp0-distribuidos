@@ -95,7 +95,12 @@ func (c *Client) StartClientLoop() {
 			return
 		}
 
-		confirmation := c.protocol.ReceiveConfirmation()
+		confirmation, err := c.protocol.ReceivedConStatus()
+
+		if err != nil {
+			log.Errorf("action: receive_confirmation | result: fail | client_id: %v | error: %v", c.config.ID, err)
+			return
+		}
 
 		if !confirmation {
 			log.Errorf("action: receive_confirmation | result: fail | client_id: %v", c.config.ID)
@@ -103,19 +108,24 @@ func (c *Client) StartClientLoop() {
 		}
 	}
 
-	// err = c.protocol.SendEndOfBatch()
+	err = c.protocol.EndSedingBets()
 
-	// if err != nil {
-	// 	log.Errorf("action: send_end_of_batch | result: fail | client_id: %v | error: %v", c.config.ID, err)
-	// 	return
-	// }
+	if err != nil {
+		log.Errorf("action: end_sending_batches | result: fail | client_id: %v | error: %v", c.config.ID, err)
+		return
+	}
 
-	// confirmation := c.protocol.ReceiveConfirmation()
+	status, err := c.protocol.ReceivedConStatus()
 
-	// if !confirmation {
-	// 	log.Errorf("action: receive_confirmation | result: fail | client_id: %v", c.config.ID)
-	// 	return
-	// }
+	if err != nil {
+		log.Errorf("action: receive_confirmation | result: fail | client_id: %v | error: %v", c.config.ID, err)
+		return
+	}
 
-	// log.Infof("action: complete | result: success | client_id: %v", c.config.ID)
+	if !status {
+		log.Errorf("action: receive_confirmation | result: fail | client_id: %v", c.config.ID)
+		return
+	}
+
+	log.Infof("action: complete | result: success | client_id: %v", c.config.ID)
 }
