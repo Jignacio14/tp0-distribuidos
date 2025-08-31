@@ -52,9 +52,6 @@ class Server:
                     logging.error(f"action: apuesta_recibida | result: fail | cantidad: {read}")
                     client.send_confirmation(False)
                     return
-                if len(bets) == 0:
-                    return
-
                 store_bets(bets)   
                 logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
                 client.send_confirmation(True)
