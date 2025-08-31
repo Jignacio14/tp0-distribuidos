@@ -37,6 +37,7 @@ func (p *Protocol) SendEndOfBatch() error {
 
 func (p *Protocol) ReceiveConfirmation() bool {
 	response := make([]byte, 2)
+	log.Infof("Awating server response")
 	_, err := p.receiveAll(2, response)
 
 	if err != nil {

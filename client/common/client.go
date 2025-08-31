@@ -66,6 +66,7 @@ func (c *Client) Shutdown() {
 func (c *Client) StartClientLoop() {
 	go c.Shutdown()
 	defer c.protocol.Shutdown()
+
 	filepath := fmt.Sprintf(".data/agency-%v.csv", c.config.ID)
 	batchGenerator, err := NewBatchGenerator(filepath)
 
