@@ -56,7 +56,8 @@ class Server:
                     return
                 store_bets(bets)   
                 logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
-                client.send_batches_received_successfully()
+                client.send_batches_received_successfully(len(bets))
+            client.send_end_of_batches()
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
         finally:

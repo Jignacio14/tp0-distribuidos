@@ -64,14 +64,21 @@ class ServerProtocol:
             logging.error(f"action: send_batches_received_successfully | result: fail | error: {e}")
             return
 
-    def __receive_all(self, len: int) -> bytes:
-        bytes = bytearray()
-        while len(bytes) < len:
-            chunk = self._client_skt.recv(len - len(bytes))
+    def send_end_of_batches(self):
+        try:
+            self._client_skt.sendall(END_OF_COMMUNICATION_CODE.to_bytes(1, byteorder='big'))
+        except OSError as e:
+            logging.error(f"action: send_end_of_batches | result: fail | error: {e}")
+            return
+
+    def __receive_all(self, lenght: int) -> bytes:
+        data_bytes = bytearray()
+        while len(data_bytes) < lenght:
+            chunk = self._client_skt.recv(lenght - len(data_bytes))
             if not chunk:
                 raise OSError("Connection closed by the client")
-            bytes.extend(chunk)
-        return bytes[:len]
+            data_bytes.extend(chunk)
+        return bytes(data_bytes)
 
     def shutdown(self):
         try:
