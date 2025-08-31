@@ -48,9 +48,11 @@ class Server:
                 serialized_bet, should_continue = client.receive_client_info()
                 receiving_bets = should_continue
                 bets, read = self.__create_bet_from_message(serialized_bet)
-                if len(bets) == 0 or read > 0: 
-                    logging.error(f"action: apuesta_recibida | result: fail | cantidad: ${read}")
+                if read > 0: 
+                    logging.error(f"action: apuesta_recibida | result: fail | cantidad: {read}")
                     client.send_confirmation(False)
+                    return
+                if len(bets) == 0:
                     return
 
                 store_bets(bets)   
