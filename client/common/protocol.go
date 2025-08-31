@@ -37,8 +37,8 @@ func (p *Protocol) SendEndOfBatch() error {
 
 func (p *Protocol) ReceiveConfirmation() bool {
 	response := make([]byte, 2)
-	log.Infof("Awating server response")
-	_, err := p.receiveAll(2, response)
+
+	err := p.receiveAll(response)
 
 	if err != nil {
 		return false
@@ -62,18 +62,18 @@ func (p *Protocol) sendAll(data []byte) error {
 	return nil
 }
 
-func (p *Protocol) receiveAll(len uint, array []byte) (int, error) {
+func (p *Protocol) receiveAll(array []byte) error {
+	len := len(array)
 	received := 0
-
 	for received < int(len) {
 		n, err := p.conn.Read(array[received:])
 		if err != nil {
-			return 0, err
+			return err
 		}
 		received += n
 	}
 
-	return received, nil
+	return nil
 }
 
 func (p *Protocol) Shutdown() {
