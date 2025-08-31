@@ -13,7 +13,7 @@ class Server:
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
-        self._client = None
+        self._client : ServerProtocol = None
         self._is_running = True
         signal.signal(signal.SIGTERM, self.__handle_sigterm)
 
@@ -26,8 +26,6 @@ class Server:
         finishes, servers starts to accept new connections again
         """
         try:
-            # TODO: Modify this program to handle signal to graceful shutdown
-            # the server
             while self._is_running:
                 self._client = self.__accept_new_connection()
                 self.__handle_client_connection(self._client)
@@ -37,7 +35,7 @@ class Server:
         finally:
             self.__shutdown()
 
-    def __handle_client_connection(self, client):
+    def __handle_client_connection(self, client: ServerProtocol):
         """
         Read message from a specific client socket and closes the socket
 
@@ -45,17 +43,19 @@ class Server:
         client socket will also be closed
         """
         try:
+            receiving_bets = True
+            while receiving_bets:
+                serialized_bet, should_continue = client.receive_client_info()
+                receiving_bets = should_continue
+                bets, read = self.__create_bet_from_message(serialized_bet)
+                if len(bets) == 0 or read > 0: 
+                    logging.error(f"action: apuesta_recibida | result: fail | cantidad: ${read}")
+                    client.send_confirmation(False)
+                    return
 
-            serialized_bet = client.receive_client_info()
-            bets, read = self.__create_bet_from_message(serialized_bet)
-            if len(bets) == 0: 
-                logging.error(f"action: apuesta_recibida | result: fail | cantidad: ${read}")
-                client.send_confirmation(False)
-                return
-
-            store_bets(bets)   
-            logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
-            client.send_confirmation(True)
+                store_bets(bets)   
+                logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
+                client.send_confirmation(True)
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
         finally:

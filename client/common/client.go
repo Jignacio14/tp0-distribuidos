@@ -98,9 +98,13 @@ func (c *Client) StartClientLoop() {
 			return
 		}
 
-	}
+		confirmation := c.protocol.ReceiveConfirmation()
 
-	time.Sleep(c.config.LoopPeriod)
+		if !confirmation {
+			log.Errorf("action: receive_confirmation | result: fail | client_id: %v", c.config.ID)
+			return
+		}
+	}
 
 	err = c.protocol.SendEndOfBatch()
 
@@ -117,5 +121,4 @@ func (c *Client) StartClientLoop() {
 	}
 
 	log.Infof("action: complete | result: success | client_id: %v", c.config.ID)
-	log.Info("Fin")
 }

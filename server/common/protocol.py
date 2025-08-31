@@ -2,41 +2,38 @@ import logging
 import socket
 
 
-DELIMITER = '\000'
+END_DELIMITER = '\000'
+BATCH_DELIMITER = '\t'
 
 
 class ServerProtocol:
 
     def __init__(self, client_ckt):
         self._client_skt = client_ckt
+        self._conection_to_end = False
 
     def __receive_until_delimiter(self):
         bytes = bytearray()
-        delimiter = DELIMITER.encode('utf-8')
-        found_end = False 
-        index = 0
+        end_delimiter = END_DELIMITER.encode('utf-8')
+        batch_delimiter = BATCH_DELIMITER.encode('utf-8')
+        end_delimiter_index = -1
+        batch_delimiter_index = -1
 
-        while not found_end: 
+        while True: 
             chunk = self._client_skt.recv(1024)
             if not chunk:
                 raise OSError("Connection closed by the client")
             bytes.extend(chunk)
 
-            index = bytes.find(delimiter)
-            if index != -1:
-                found_end = True
-        
-        return bytes[:index].decode('utf-8')
+            end_delimiter_index = bytes.find(end_delimiter)
+            batch_delimiter_index = bytes.find(batch_delimiter)
 
-            
+            if end_delimiter_index != -1:
+                self._conection_to_end = True
+                return bytes[:end_delimiter_index].decode('utf-8').replace(BATCH_DELIMITER, ''), False
+            elif batch_delimiter_index != -1:
+                return bytes[:batch_delimiter_index].decode('utf-8').replace(BATCH_DELIMITER, ''), True
 
-    def receive_client_info(self):
-        try:
-            return self.__receive_until_delimiter()
-        except OSError as e:
-            logging.error(f"action: receive_message | result: fail | error: {e}")
-            return None 
-        
     def send_confirmation(self, confirmation: bool):
         try:
             msg = 'OK' if confirmation else 'NO'
