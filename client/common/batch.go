@@ -46,5 +46,5 @@ func (b *Batch) AddBet(bet Bet) error {
 
 // Serializes the batch into a string, with bets separated by new lines
 func (b *Batch) Serialize() string {
-	return strings.Join(append(b.bets, ""), "\n")
+	return strings.Join(b.bets, "\n")
 }
