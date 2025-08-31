@@ -34,6 +34,13 @@ class ServerProtocol:
             elif batch_delimiter_index != -1:
                 return bytes[:batch_delimiter_index].decode('utf-8').replace(BATCH_DELIMITER, ''), True
 
+    def receive_client_info(self):
+        try:
+            return self.__receive_until_delimiter()
+        except OSError as e:
+            logging.error(f"action: receive_message | result: fail | error: {e}")
+            return '', False
+
     def send_confirmation(self, confirmation: bool):
         try:
             msg = 'OK' if confirmation else 'NO'
