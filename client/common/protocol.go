@@ -73,7 +73,8 @@ func (p *Protocol) ReceivedConStatus() (bool, error) {
 		return false, err
 	}
 
-	return response[0] == receivedBatchOKCode, nil
+	code := response[0]
+	return code == receivedBatchOKCode || code == endOfBatch, nil
 }
 
 func (p *Protocol) EndSedingBets() error {
