@@ -8,7 +8,6 @@ import (
 type BatchGenerator struct {
 	file         *os.File
 	scanner      *bufio.Scanner
-	currLine     int
 	isReading    bool
 	lastLineRead string
 }
@@ -22,7 +21,6 @@ func NewBatchGenerator(filePath string) (*BatchGenerator, error) {
 	return &BatchGenerator{
 		file:         file,
 		scanner:      bufio.NewScanner(file),
-		currLine:     1,
 		isReading:    true,
 		lastLineRead: "",
 	}, nil
@@ -36,7 +34,9 @@ func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
 	batch := NewBatch(batchSize)
 
 	if bg.lastLineRead != "" {
+
 		bet, err := betFromString(bg.lastLineRead)
+
 		if err != nil {
 			return nil, err
 		}
@@ -53,6 +53,11 @@ func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
 	for bg.scanner.Scan() {
 
 		betStr := bg.scanner.Text()
+
+		if betStr == "" {
+			continue
+		}
+
 		bet, err := betFromString(betStr)
 		if err != nil {
 			return nil, err

@@ -1,12 +1,19 @@
 package common
 
 import (
+	"encoding/binary"
 	"net"
 )
 
 type Protocol struct {
 	conn net.Conn
 }
+
+const (
+	sendBatchCode          byte = 0x01
+	receivedBatchOKCode    byte = 0x02
+	receivedBatchNotOKCode byte = 0x03
+)
 
 func NewProtocol(serverAdr string) (*Protocol, error) {
 	conn, err := net.Dial("tcp", serverAdr)
@@ -18,33 +25,43 @@ func NewProtocol(serverAdr string) (*Protocol, error) {
 	return protocol, nil
 }
 
-func (p *Protocol) SendClientInfo(clientInfo string) error {
-	clientInfo += "\n"
-	data := []byte(clientInfo)
-	return p.sendAll(data)
-}
-
 func (p *Protocol) SendBatch(batchStr string) error {
-	batchStr += "\t"
+
 	data := []byte(batchStr)
+
+	opCode := []byte{sendBatchCode}
+	err := p.sendAll(opCode)
+
+	if err != nil {
+		return err
+	}
+
+	length := p.htonsUint32(uint32(len(data)))
+
+	err = p.sendAll(length)
+
+	if err != nil {
+		return err
+	}
+
 	return p.sendAll(data)
 }
 
-func (p *Protocol) SendEndOfBatch() error {
-	data := []byte("\000")
-	return p.sendAll(data)
+func (p *Protocol) htonsUint32(val uint32) []byte {
+	bytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(bytes, val)
+	return bytes
 }
 
 func (p *Protocol) ReceiveConfirmation() bool {
-	response := make([]byte, 2)
-
+	response := make([]byte, 1)
 	err := p.receiveAll(response)
 
 	if err != nil {
 		return false
 	}
 
-	return string(response) == "OK"
+	return response[0] == receivedBatchOKCode
 }
 
 func (p *Protocol) sendAll(data []byte) error {

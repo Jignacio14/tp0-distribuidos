@@ -1,45 +1,30 @@
 import logging
 import socket
 
+OP_CODE_LEN = 1
+BATCH_LEN = 4
 
-END_DELIMITER = '\000'
-BATCH_DELIMITER = '\t'
-
+BATCH_SEND_OP_CODE = 1
+BATCH_RECEIVED_OK_CODE = 2
+BATCH_RECEIVED_FAIL_CODE = 3
+END_OF_COMMUNICATION_CODE = 4
 
 class ServerProtocol:
 
     def __init__(self, client_ckt):
         self._client_skt = client_ckt
-        self._conection_to_end = False
 
-    def __receive_until_delimiter(self):
-        bytes = bytearray()
-        end_delimiter = END_DELIMITER.encode('utf-8')
-        batch_delimiter = BATCH_DELIMITER.encode('utf-8')
-        end_delimiter_index = -1
-        batch_delimiter_index = -1
-
-        while True: 
-            chunk = self._client_skt.recv(1024)
-            if not chunk:
-                raise OSError("Connection closed by the client")
-            bytes.extend(chunk)
-
-            end_delimiter_index = bytes.find(end_delimiter)
-            batch_delimiter_index = bytes.find(batch_delimiter)
-
-            if end_delimiter_index != -1:
-                self._conection_to_end = True
-                return bytes[:end_delimiter_index].decode('utf-8').replace(BATCH_DELIMITER, ''), False
-            elif batch_delimiter_index != -1:
-                return bytes[:batch_delimiter_index].decode('utf-8').replace(BATCH_DELIMITER, ''), True
-
-    def receive_client_info(self):
+    def receive_batch(self) -> str:
         try:
-            return self.__receive_until_delimiter()
+            op_code = self.__receive_op_code()
+            if op_code == END_OF_COMMUNICATION_CODE:
+                return False, ''
+            length = self.__receive_batch_lenght()
+            client_info = self.__receive_batch(length)
+            return True, client_info
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
-            return '', False
+            return ''
 
     def send_confirmation(self, confirmation: bool):
         try:
@@ -50,6 +35,29 @@ class ServerProtocol:
             return False
         return True
     
+    def __receive_op_code(self) -> int:
+        op_code_byte = self.__receive_all(OP_CODE_LEN)
+        op_code = int.from_bytes(op_code_byte, byteorder='big')
+        return op_code
+        
+    def __receive_batch_lenght(self) -> int:
+        length_bytes = self.__receive_all(BATCH_LEN)
+        length = int.from_bytes(length_bytes, byteorder='big')
+        return length
+
+    def __receive_batch(self, length) -> str:
+        batch_bytes = self.__receive_all(length)
+        return batch_bytes.decode('utf-8')
+
+    def __receive_all(self, len: int) -> bytes:
+        bytes = bytearray()
+        while len(bytes) < len:
+            chunk = self._client_skt.recv(len - len(bytes))
+            if not chunk:
+                raise OSError("Connection closed by the client")
+            bytes.extend(chunk)
+        return bytes[:len]
+
     def shutdown(self):
         try:
             self._client_skt.shutdown(socket.SHUT_RDWR)

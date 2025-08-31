@@ -88,10 +88,6 @@ func (c *Client) StartClientLoop() {
 
 		batchStr := batch.Serialize()
 
-		if batchStr == "" {
-			continue
-		}
-
 		err = c.protocol.SendBatch(batchStr)
 
 		if err != nil {
@@ -107,19 +103,19 @@ func (c *Client) StartClientLoop() {
 		}
 	}
 
-	err = c.protocol.SendEndOfBatch()
+	// err = c.protocol.SendEndOfBatch()
 
-	if err != nil {
-		log.Errorf("action: send_end_of_batch | result: fail | client_id: %v | error: %v", c.config.ID, err)
-		return
-	}
+	// if err != nil {
+	// 	log.Errorf("action: send_end_of_batch | result: fail | client_id: %v | error: %v", c.config.ID, err)
+	// 	return
+	// }
 
-	confirmation := c.protocol.ReceiveConfirmation()
+	// confirmation := c.protocol.ReceiveConfirmation()
 
-	if !confirmation {
-		log.Errorf("action: receive_confirmation | result: fail | client_id: %v", c.config.ID)
-		return
-	}
+	// if !confirmation {
+	// 	log.Errorf("action: receive_confirmation | result: fail | client_id: %v", c.config.ID)
+	// 	return
+	// }
 
-	log.Infof("action: complete | result: success | client_id: %v", c.config.ID)
+	// log.Infof("action: complete | result: success | client_id: %v", c.config.ID)
 }

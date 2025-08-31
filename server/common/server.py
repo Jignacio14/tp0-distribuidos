@@ -45,16 +45,18 @@ class Server:
         try:
             receiving_bets = True
             while receiving_bets:
-                serialized_bet, should_continue = client.receive_client_info()
-                receiving_bets = should_continue
-                bets, read = self.__create_bet_from_message(serialized_bet)
-                if read > 0: 
-                    logging.error(f"action: apuesta_recibida | result: fail | cantidad: {read}")
-                    client.send_confirmation(False)
+                keep_reading, msg = client.receive_batch()
+                receiving_bets = keep_reading
+                if msg == '':
+                    break
+                bets, errors = self.__create_bet_from_message(msg)
+                if errors > 0: 
+                    logging.error(f"action: apuesta_recibida | result: fail | cantidad: {errors}")
+                    client.send_bad_bets(errors)
                     return
                 store_bets(bets)   
                 logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
-                client.send_confirmation(True)
+                client.send_batches_received_successfully()
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
         finally:
