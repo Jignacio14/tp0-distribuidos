@@ -50,18 +50,17 @@ class ServerProtocol:
         return batch_bytes.decode('utf-8')
 
     def send_bad_bets(self, count: int):
-        try:
-            self._client_skt.sendall(BATCH_RECEIVED_FAIL_CODE.to_bytes(1, byteorder='big'))
-            # self._client_skt.sendall(count.to_bytes(4, byteorder='big'))
-        except OSError as e:
-            logging.error(f"action: send_bad_bets | result: fail | error: {e}")
+        self.__send_template(BATCH_RECEIVED_FAIL_CODE, count)
 
     def send_batches_received_successfully(self, bets_count: int):
+        self.__send_template(BATCH_RECEIVED_OK_CODE, bets_count)
+
+    def __send_template(self, code: int, number: int):
         try:
-            self._client_skt.sendall(BATCH_RECEIVED_OK_CODE.to_bytes(1, byteorder='big'))
-            # self._client_skt.sendall(bets_count.to_bytes(4, byteorder='big'))
+            self._client_skt.sendall(code.to_bytes(1, byteorder='big'))
+            self._client_skt.sendall(number.to_bytes(4, byteorder='big'))
         except OSError as e:
-            logging.error(f"action: send_batches_received_successfully | result: fail | error: {e}")
+            logging.error(f"action: send_template | result: fail | error: {e}")
             return
 
     def send_end_of_batches(self):

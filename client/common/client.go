@@ -95,17 +95,19 @@ func (c *Client) StartClientLoop() {
 			return
 		}
 
-		confirmation, err := c.protocol.ReceivedConStatus()
+		bets_processed, err, status := c.protocol.ReceivedConStatus()
 
 		if err != nil {
 			log.Errorf("action: receive_confirmation | result: fail | client_id: %v | error: %v", c.config.ID, err)
 			return
 		}
 
-		if !confirmation {
-			log.Errorf("action: receive_confirmation | result: fail | client_id: %v", c.config.ID)
-			return
+		if !status {
+			log.Errorf("action: apuesta_recibida | result: fail | cantidad: %v ", bets_processed)
+			break
 		}
+
+		log.Infof("action: apuesta_recibida | result: success | cantidad: %v", bets_processed)
 	}
 
 	err = c.protocol.EndSedingBets()
@@ -115,7 +117,7 @@ func (c *Client) StartClientLoop() {
 		return
 	}
 
-	status, err := c.protocol.ReceivedConStatus()
+	status, err := c.protocol.ReceivedEnd()
 
 	if err != nil {
 		log.Errorf("action: receive_confirmation | result: fail | client_id: %v | error: %v", c.config.ID, err)

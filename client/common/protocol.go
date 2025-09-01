@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/binary"
+	"fmt"
 	"net"
 )
 
@@ -54,6 +55,10 @@ func (p *Protocol) htonsUint32(val uint32) []byte {
 	return bytes
 }
 
+func (p *Protocol) ntohsUint32(data []byte) int {
+	return int(binary.BigEndian.Uint32(data))
+}
+
 func (p *Protocol) ReceiveConfirmation() bool {
 	response := make([]byte, 1)
 	err := p.receiveAll(response)
@@ -65,7 +70,32 @@ func (p *Protocol) ReceiveConfirmation() bool {
 	return response[0] == receivedBatchOKCode
 }
 
-func (p *Protocol) ReceivedConStatus() (bool, error) {
+func (p *Protocol) ReceivedConStatus() (int, error, bool) {
+
+	responseCode := make([]byte, 1)
+	if err := p.receiveAll(responseCode); err != nil {
+		return 0, fmt.Errorf("failed to receive response code: %w", err), false
+	}
+
+	amountBytes := make([]byte, 4)
+	if err := p.receiveAll(amountBytes); err != nil {
+		return 0, fmt.Errorf("failed to receive amount: %w", err), false
+	}
+
+	total := p.ntohsUint32(amountBytes)
+
+	if responseCode[0] == receivedBatchOKCode {
+		return total, nil, true
+	}
+
+	if responseCode[0] == receivedBatchNotOKCode {
+		return total, nil, false
+	}
+
+	return 0, fmt.Errorf("unknown response code: %v", responseCode[0]), false
+}
+
+func (p *Protocol) ReceivedEnd() (bool, error) {
 	response := make([]byte, 1)
 	err := p.receiveAll(response)
 
@@ -73,8 +103,7 @@ func (p *Protocol) ReceivedConStatus() (bool, error) {
 		return false, err
 	}
 
-	code := response[0]
-	return code == receivedBatchOKCode || code == endOfBatch, nil
+	return response[0] == endOfBatch, nil
 }
 
 func (p *Protocol) EndSedingBets() error {
