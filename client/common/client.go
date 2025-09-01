@@ -106,8 +106,6 @@ func (c *Client) StartClientLoop() {
 			log.Errorf("action: apuesta_recibida | result: fail | cantidad: %v ", bets_processed)
 			break
 		}
-
-		log.Infof("action: apuesta_recibida | result: success | cantidad: %v", bets_processed)
 	}
 
 	err = c.protocol.EndSedingBets()
