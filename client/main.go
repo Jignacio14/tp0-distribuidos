@@ -115,4 +115,5 @@ func main() {
 
 	client := common.NewClient(clientConfig)
 	client.StartClientLoop()
+	log.Infof("action: end | result: success")
 }
