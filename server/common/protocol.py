@@ -8,6 +8,7 @@ BATCH_SEND_OP_CODE = 1
 BATCH_RECEIVED_OK_CODE = 2
 BATCH_RECEIVED_FAIL_CODE = 3
 END_OF_COMMUNICATION_CODE = 4
+GET_WINNERS_CODE = 5
 
 class ServerProtocol:
 
@@ -18,6 +19,8 @@ class ServerProtocol:
         try:
             op_code = self.__receive_op_code()
             if op_code == END_OF_COMMUNICATION_CODE:
+                return False, ''
+            elif op_code == GET_WINNERS_CODE:
                 return False, ''
             length = self.__receive_batch_lenght()
             client_info = self.__receive_batch(length)
@@ -61,6 +64,27 @@ class ServerProtocol:
             self._client_skt.sendall(number.to_bytes(4, byteorder='big'))
         except OSError as e:
             logging.error(f"action: send_template | result: fail | error: {e}")
+            return
+
+    def get_agency_id(self) -> int:
+        try: 
+            length_bytes = self.__receive_all(BATCH_LEN)
+            length = int.from_bytes(length_bytes, byteorder='big')
+            agency_id_bytes = self.__receive_all(length)
+            agency_id = int(agency_id_bytes.decode('utf-8'))
+            return agency_id
+        except OSError as e:
+            logging.error(f"action: get_agency_id | result: fail | error: {e}")
+            return -1
+        
+    def send_winners(self, winners: list[str]):
+        try:
+            winners_str = ','.join(winners)
+            winners_bytes = winners_str.encode('utf-8')
+            self._client_skt.sendall(len(winners_bytes).to_bytes(4, byteorder='big'))
+            self._client_skt.sendall(winners_bytes)
+        except OSError as e:
+            logging.error(f"action: send_winners | result: fail | error: {e}")
             return
 
     def send_end_of_batches(self):

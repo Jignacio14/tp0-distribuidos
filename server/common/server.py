@@ -3,7 +3,7 @@ import socket
 import logging
 
 from common.protocol import ServerProtocol
-from common.utils import store_bets
+from common.utils import has_won, load_bets, store_bets
 
 from common.utils import Bet
 
@@ -57,12 +57,20 @@ class Server:
                 store_bets(bets)   
                 logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
                 client.send_batches_received_successfully(len(bets))
+            winners = self.__inform_winners(client)
+            client.send_winners(winners)
             client.send_end_of_batches()
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
         finally:
             client.shutdown()
             self._client = None
+
+    def __inform_winners(self, client: ServerProtocol) -> list[Bet]:
+        # Dummy implementation, replace with actual logic to determine winners
+        agency_id = client.get_agency_id()
+        winners = [bet for bet in load_bets() if bet.agency == agency_id and has_won(bet)]
+        return [bet.document for bet in winners]
 
     def __create_bet_from_message(self, message: str):
         bets = []

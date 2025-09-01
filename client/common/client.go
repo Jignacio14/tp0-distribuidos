@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -108,12 +109,23 @@ func (c *Client) StartClientLoop() {
 		}
 	}
 
-	err = c.protocol.EndSedingBets()
+	// err = c.protocol.EndSedingBets()
+
+	err = c.protocol.AskForWinners(c.config.ID)
 
 	if err != nil {
 		log.Errorf("action: end_sending_batches | result: fail | client_id: %v | error: %v", c.config.ID, err)
 		return
 	}
+
+	winners, err := c.protocol.ReceiveWinners()
+
+	if err != nil {
+		log.Errorf("action: receive_winners | result: fail | client_id: %v | error: %v", c.config.ID, err)
+		return
+	}
+
+	c.LogWinners(winners)
 
 	status, err := c.protocol.ReceivedEnd()
 
@@ -130,4 +142,9 @@ func (c *Client) StartClientLoop() {
 	log.Infof("action: complete | result: success | client_id: %v", c.config.ID)
 
 	time.Sleep(c.config.LoopPeriod)
+}
+
+func (c *Client) LogWinners(winners string) {
+	separatedWinners := strings.Split(winners, ",")
+	log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %d", len(separatedWinners))
 }

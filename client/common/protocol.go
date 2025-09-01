@@ -15,6 +15,7 @@ const (
 	receivedBatchOKCode    byte = 0x02
 	receivedBatchNotOKCode byte = 0x03
 	endOfBatch             byte = 0x04
+	getWinnersCode         byte = 0x05
 )
 
 func NewProtocol(serverAdr string) (*Protocol, error) {
@@ -93,6 +94,51 @@ func (p *Protocol) ReceivedConStatus() (int, error, bool) {
 	}
 
 	return 0, fmt.Errorf("unknown response code: %v", responseCode[0]), false
+}
+
+func (p *Protocol) AskForWinners(lotteryId string) error {
+	opCode := []byte{getWinnersCode}
+
+	err := p.sendAll(opCode)
+
+	if err != nil {
+		return err
+	}
+
+	length := p.htonsUint32(uint32(len(lotteryId)))
+
+	err = p.sendAll(length)
+
+	if err != nil {
+		return err
+	}
+
+	err = p.sendAll([]byte(lotteryId))
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Protocol) ReceiveWinners() (string, error) {
+	lengthBytes := make([]byte, 4)
+	if err := p.receiveAll(lengthBytes); err != nil {
+		return "", fmt.Errorf("failed to receive winners length: %w", err)
+	}
+
+	length := p.ntohsUint32(lengthBytes)
+	if length == 0 {
+		return "", nil // No winners
+	}
+
+	winnersBytes := make([]byte, length)
+	if err := p.receiveAll(winnersBytes); err != nil {
+		return "", fmt.Errorf("failed to receive winners data: %w", err)
+	}
+
+	return string(winnersBytes), nil
 }
 
 func (p *Protocol) ReceivedEnd() (bool, error) {
