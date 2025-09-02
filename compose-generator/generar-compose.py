@@ -15,6 +15,7 @@ services:
     entrypoint: python3 /main.py
     environment:
       - PYTHONUNBUFFERED=1
+      - CLIENT_NUM={client_num}
     networks:
       - testing_net
     volumes:
@@ -55,7 +56,7 @@ CLIENT_YML = """
 def generate_script(file_destination, num_clients):
 
     with open(file_destination, 'w') as f:
-        write_in_file(SERVER_YAML, f)
+        write_in_file(SERVER_YAML.format(client_num=num_clients), f)
         write_dinamically(num_clients, f)
         write_in_file(NETWORK_YAML, f)
 
