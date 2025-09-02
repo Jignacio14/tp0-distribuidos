@@ -32,7 +32,7 @@ class Server:
             while self._is_running:
                 self._client = self.__accept_new_connection()
                 self.__handle_client_connection(self._client)
-                if len(self._clients) == self.clients_num:
+                if len(self._clients) == self._total_clients:
                     self.__send_winners_to_all_clients()
                     self.__shutdown_clients()
                     self._is_running = False
@@ -66,11 +66,9 @@ class Server:
                 store_bets(bets)   
                 logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
                 client.send_batches_received_successfully(len(bets))
+            logging.info(f"action: received all bets from client | result: success | client_id: {current_client_id}")
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
-        finally:
-            client.shutdown()
-            self._client = None
 
     def __inform_winners(self, agency_id: str) -> list[Bet]:
         return [bet.document for bet in load_bets() if bet.agency == agency_id and has_won(bet)]
@@ -135,8 +133,8 @@ class Server:
             return
 
     def __shutdown(self):
-        self._client_socket = self.__close_skt(self._client_socket)
         self._server_socket = self.__close_skt(self._server_socket)
+        self.__shutdown_clients()
         self._is_running = False
 
     def __close_skt(self, skt): 
