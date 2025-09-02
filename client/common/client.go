@@ -89,6 +89,10 @@ func (c *Client) StartClientLoop() {
 		}
 
 		// TODO: Modify the send to avoid short-write
+		if c.conn == nil {
+			return
+		}
+
 		_, err = fmt.Fprintf(
 			c.conn,
 			"[CLIENT %v] Message N°%v\n",
