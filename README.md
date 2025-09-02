@@ -197,3 +197,5 @@ Para el cliente:
 
 
 Estas lineas estan compuestas por: `ubicacion del archivo : mapeo ubicacion destino dentro del contenedor`. Estas lineas automaticamente montan los volumenes en cada uno de los contenedores levantados permitiendo asi no tener la necesidad de reconstruir las imagenes tanto del server como del cliente
+
+[Referencia usada de docker volume](docs.docker.com/engine/storage/volumes/)
