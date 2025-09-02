@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"strings"
 )
 
 type Protocol struct {
@@ -122,23 +123,24 @@ func (p *Protocol) AskForWinners(lotteryId string) error {
 	return nil
 }
 
-func (p *Protocol) ReceiveWinners() (string, error) {
+func (p *Protocol) ReceiveWinners() ([]string, error) {
 	lengthBytes := make([]byte, 4)
 	if err := p.receiveAll(lengthBytes); err != nil {
-		return "", fmt.Errorf("failed to receive winners length: %w", err)
+		return []string{}, fmt.Errorf("failed to receive winners length: %w", err)
 	}
 
 	length := p.ntohsUint32(lengthBytes)
 	if length == 0 {
-		return "", nil // No winners
+		return []string{}, nil // No winners
 	}
 
 	winnersBytes := make([]byte, length)
 	if err := p.receiveAll(winnersBytes); err != nil {
-		return "", fmt.Errorf("failed to receive winners data: %w", err)
+		return []string{}, fmt.Errorf("failed to receive winners data: %w", err)
 	}
 
-	return string(winnersBytes), nil
+	winners := string(winnersBytes)
+	return strings.Split(winners, ","), nil
 }
 
 func (p *Protocol) ReceivedEnd() (bool, error) {

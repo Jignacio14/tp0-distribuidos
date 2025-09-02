@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
@@ -142,7 +141,6 @@ func (c *Client) StartClientLoop() {
 	log.Infof("action: complete | result: success | client_id: %v", c.config.ID)
 }
 
-func (c *Client) LogWinners(winners string) {
-	separatedWinners := strings.Split(winners, ",")
-	log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %d", len(separatedWinners))
+func (c *Client) LogWinners(winners []string) {
+	log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %d", len(winners))
 }
