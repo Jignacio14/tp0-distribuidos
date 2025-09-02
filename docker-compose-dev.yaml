@@ -7,6 +7,7 @@ services:
     entrypoint: python3 /main.py
     environment:
       - PYTHONUNBUFFERED=1
+      - CLIENT_NUM=3
     networks:
       - testing_net
     volumes:
@@ -23,6 +24,44 @@ services:
       - CLI_DOCUMENT=12345678
       - CLI_BIRTHDATE=1912-06-23
       - CLI_NUMBER=42
+    networks:
+      - testing_net
+    depends_on:
+      - server
+    volumes:
+    - ./client/config.yaml:/config.yaml
+    - ./.data:/.data
+
+  client2:
+    container_name: client2
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=2
+      - CLI_NAME=Ada
+      - CLI_LASTNAME=Lovelace
+      - CLI_DOCUMENT=87654321
+      - CLI_BIRTHDATE=1815-12-10
+      - CLI_NUMBER=17
+    networks:
+      - testing_net
+    depends_on:
+      - server
+    volumes:
+    - ./client/config.yaml:/config.yaml
+    - ./.data:/.data
+
+  client3:
+    container_name: client3
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=3
+      - CLI_NAME=Linus
+      - CLI_LASTNAME=Torvalds
+      - CLI_DOCUMENT=11223344
+      - CLI_BIRTHDATE=1969-12-28
+      - CLI_NUMBER=7
     networks:
       - testing_net
     depends_on:
