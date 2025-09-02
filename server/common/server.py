@@ -4,7 +4,7 @@ import logging
 
 from common.protocol import ServerProtocol
 from common.utils import has_won, load_bets, store_bets
-
+from multiprocessing import Process, Barrier, Lock
 from common.utils import Bet
 
 class Server:
@@ -17,6 +17,9 @@ class Server:
         self._is_running = True
         self._clients = {}
         self._total_clients = clients_num
+        self._barrier = Barrier(clients_num)
+        self._lock = Lock()
+        self._client_processes : list[Process] = []
         signal.signal(signal.SIGTERM, self.__handle_sigterm)
 
 
@@ -31,13 +34,12 @@ class Server:
         try:
             while self._is_running:
                 self._client = self.__accept_new_connection()
-                self.__handle_client_connection(self._client)
-                if len(self._clients) == self._total_clients:
-                    logging.info("action: sorteo | result: success")
-                    self.__send_winners_to_all_clients()
-                    self.__shutdown_clients()
-                    self._is_running = False
-                    return
+                client_process = Process(target=self.__handle_client_connection, args=(self._client,))
+                client_process.start()
+                self._client_processes.append(client_process)
+            
+            for process in self._client_processes:
+                process.join()
         except OSError as _:
             self._is_running = False
         finally:
@@ -53,7 +55,9 @@ class Server:
         try:
             receiving_bets = True
             current_client_id = client.get_agency_id()
+            self._lock.acquire()
             self._clients[current_client_id] = self._clients.get(current_client_id, client)
+            self._lock.release()
             while receiving_bets:
                 keep_reading, msg = client.receive_batch()
                 receiving_bets = keep_reading
@@ -64,9 +68,13 @@ class Server:
                     logging.error(f"action: apuesta_recibida | result: fail | cantidad: {errors}")
                     client.send_bad_bets(errors)
                     return
+                self._lock.acquire()
                 store_bets(bets)   
+                self._lock.release()    
                 logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
                 client.send_batches_received_successfully(len(bets))
+            self._barrier.wait()
+            self.__send_winners_to_client(current_client_id)
             logging.info(f"action: received all bets from client | result: success | client_id: {current_client_id}")
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
@@ -103,6 +111,15 @@ class Server:
                 logging.info(f"action: informar_ganadores | result: success | cantidad: {len(winners)}")
             except OSError as e:
                 logging.error(f"action: informar_ganadores | result: fail | error: {e}")
+
+    def __send_winners_to_client(self, client_id: str):
+        winners = self.__inform_winners(client_id)
+        try:
+            self._clients[client_id].send_winners(winners)
+            logging.info(f"action: informar_ganadores | result: success | cantidad: {len(winners)}")
+            self._is_running = False
+        except OSError as e:
+            logging.error(f"action: informar_ganadores | result: fail | error: {e}")
 
     def __shutdown_clients(self):
         for client in self._clients.values():
