@@ -131,18 +131,6 @@ func (c *Client) StartClientLoop() {
 
 	c.LogWinners(winners)
 
-	status, err := c.protocol.ReceivedEnd()
-
-	if err != nil {
-		log.Errorf("action: receive_confirmation | result: fail | client_id: %v | error: %v", c.config.ID, err)
-		return
-	}
-
-	if !status {
-		log.Errorf("action: receive_confirmation | result: fail | client_id: %v", c.config.ID)
-		return
-	}
-
 	log.Infof("action: complete | result: success | client_id: %v", c.config.ID)
 }
 
