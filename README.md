@@ -213,3 +213,21 @@ Para el codigo 2:
     ❌ Unexpected error occurred with exit code $exit_code
 
 
+# Respuestas 
+
+## Ej2
+
+Para el ejercicio 2, se agregan dos volumenes, uno para el cliente y otro para el servidor. Para esto se modificaron las constantes de templates encontradas en el `generar-compose.py`
+
+Para el servidor:
+
+    volumes:
+      - ./server/config.ini:/config.ini
+
+Para el cliente: 
+
+    volumes:
+    - ./client/config.yaml:/config.yaml
+
+
+Estas lineas estan compuestas por: `ubicacion del archivo : mapeo ubicacion destino dentro del contenedor`. Estas lineas automaticamente montan los volumenes en cada uno de los contenedores levantados permitiendo asi no tener la necesidad de reconstruir las imagenes tanto del server como del cliente
