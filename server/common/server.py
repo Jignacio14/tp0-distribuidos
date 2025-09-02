@@ -33,6 +33,7 @@ class Server:
                 self._client = self.__accept_new_connection()
                 self.__handle_client_connection(self._client)
                 if len(self._clients) == self._total_clients:
+                    logging.info("action: sorteo | result: success")
                     self.__send_winners_to_all_clients()
                     self.__shutdown_clients()
                     self._is_running = False
