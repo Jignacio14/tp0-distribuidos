@@ -3,6 +3,7 @@ import socket
 
 OP_CODE_LEN = 1
 BATCH_LEN = 4
+AGENCY_ID_LEN = 4
 
 BATCH_SEND_OP_CODE = 1
 BATCH_RECEIVED_OK_CODE = 2
@@ -68,7 +69,7 @@ class ServerProtocol:
 
     def get_agency_id(self) -> int:
         try: 
-            length_bytes = self.__receive_all(BATCH_LEN)
+            length_bytes = self.__receive_all(AGENCY_ID_LEN)
             length = int.from_bytes(length_bytes, byteorder='big')
             agency_id_bytes = self.__receive_all(length)
             agency_id = int(agency_id_bytes.decode('utf-8'))

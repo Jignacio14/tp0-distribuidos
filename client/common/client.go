@@ -77,6 +77,13 @@ func (c *Client) StartClientLoop() {
 
 	defer batchGenerator.Close()
 
+	err = c.protocol.SendLoteryId(c.config.ID)
+
+	if err != nil {
+		log.Errorf("action: send_lottery_id | result: fail | client_id: %v | error: %v", c.config.ID, err)
+		return
+	}
+
 	for batchGenerator.IsReading() {
 
 		batch, err := batchGenerator.Read(c.config.MaxBatchSize)
@@ -108,9 +115,7 @@ func (c *Client) StartClientLoop() {
 		}
 	}
 
-	// err = c.protocol.EndSedingBets()
-
-	err = c.protocol.AskForWinners(c.config.ID)
+	err = c.protocol.EndSedingBets()
 
 	if err != nil {
 		log.Errorf("action: end_sending_batches | result: fail | client_id: %v | error: %v", c.config.ID, err)

@@ -97,18 +97,11 @@ func (p *Protocol) ReceivedConStatus() (int, error, bool) {
 	return 0, fmt.Errorf("unknown response code: %v", responseCode[0]), false
 }
 
-func (p *Protocol) AskForWinners(lotteryId string) error {
-	opCode := []byte{getWinnersCode}
-
-	err := p.sendAll(opCode)
-
-	if err != nil {
-		return err
-	}
+func (p *Protocol) SendLoteryId(lotteryId string) error {
 
 	length := p.htonsUint32(uint32(len(lotteryId)))
 
-	err = p.sendAll(length)
+	err := p.sendAll(length)
 
 	if err != nil {
 		return err
