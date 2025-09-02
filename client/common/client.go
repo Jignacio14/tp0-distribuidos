@@ -89,12 +89,21 @@ func (c *Client) StartClientLoop() {
 		}
 
 		// TODO: Modify the send to avoid short-write
-		fmt.Fprintf(
+		_, err = fmt.Fprintf(
 			c.conn,
 			"[CLIENT %v] Message N°%v\n",
 			c.config.ID,
 			msgID,
 		)
+
+		if err != nil {
+			log.Errorf("action: send_message | result: fail | client_id: %v | error: %v",
+				c.config.ID,
+				err,
+			)
+			return
+		}
+
 		msg, err := bufio.NewReader(c.conn).ReadString('\n')
 		c.conn.Close()
 
