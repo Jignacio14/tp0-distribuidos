@@ -16,6 +16,7 @@ class Server:
         self._client : ServerProtocol = None
         self._is_running = True
         self._clients = {}
+        self._total_clients = clients_num
         signal.signal(signal.SIGTERM, self.__handle_sigterm)
 
 
@@ -31,7 +32,11 @@ class Server:
             while self._is_running:
                 self._client = self.__accept_new_connection()
                 self.__handle_client_connection(self._client)
-                self._client_socket = None
+                if len(self._clients) == self.clients_num:
+                    self.__send_winners_to_all_clients()
+                    self.__shutdown_clients()
+                    self._is_running = False
+                    return
         except OSError as _:
             self._is_running = False
         finally:
@@ -67,10 +72,8 @@ class Server:
             client.shutdown()
             self._client = None
 
-    def __inform_winners(self, client: ServerProtocol) -> list[Bet]:
-        agency_id = client.get_agency_id()
-        winners = [bet for bet in load_bets() if bet.agency == agency_id and has_won(bet)]
-        return [bet.document for bet in winners]
+    def __inform_winners(self, agency_id: str) -> list[Bet]:
+        return [bet.document for bet in load_bets() if bet.agency == agency_id and has_won(bet)]
 
     def __create_bet_from_message(self, message: str):
         bets = []
@@ -92,6 +95,20 @@ class Server:
         except Exception as e:
             logging.error(f"action: parse_bet | result: fail | error: {e}")
             return bets, errors
+
+    def __send_winners_to_all_clients(self):
+        for client_id in self._clients.keys():
+            winners = self.__inform_winners(client_id)
+            try:
+                self._clients[client_id].send_winners(winners)
+                logging.info(f"action: informar_ganadores | result: success | cantidad: {len(winners)}")
+            except OSError as e:
+                logging.error(f"action: informar_ganadores | result: fail | error: {e}")
+
+    def __shutdown_clients(self):
+        for client in self._clients.values():
+            client.shutdown()
+        self._clients = {}
 
     def __accept_new_connection(self):
         """
