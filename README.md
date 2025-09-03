@@ -189,5 +189,14 @@ La imagen utilizada es `busybox:lastest` la cual se consiguio mediante la revisi
 
 Por lo tanto, se crea y se ejecuta el contenedor de docker el cual con el flag `--rm` se le indica que se elimine automaticamente al finalizar la ejecucion y mediante la conexion a la red `tp0_testing_net` se envia un mensaje al servidor definido previamente en la variable y se analiza el resultado de dicha respuesta
 
+Para probar el funcionamiento basta con tener el servidor levantado mediante 
+
+        make docker-compose-up
+
+y desde otra terminal ejecutar el script 
+
+        ./validar-echo-server.sh
+
 [Refs a busybox](https://hub.docker.com/_/busybox)
+
 [Refs a docker network](https://docs.docker.com/engine/network/)
