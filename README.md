@@ -178,3 +178,16 @@ Se espera que se redacte una sección del README en donde se indique cómo ejecu
 Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/tp0-tests) de caja negra. Se exige que la resolución de los ejercicios pase tales pruebas, o en su defecto que las discrepancias sean justificadas y discutidas con los docentes antes del día de la entrega. El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación. Respetar las entradas de log planteadas en los ejercicios, pues son las que se chequean en cada uno de los tests.
 
 La corrección personal tendrá en cuenta la calidad del código entregado y casos de error posibles, se manifiesten o no durante la ejecución del trabajo práctico. Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
+
+# Respuestas 
+
+## Ej3
+
+Para el ejercicio 3, se genero un script `validar-echo-server` que tiene definida una variable de mensaje y el puerto del servidor a donde debe comunicarse. Dicho server ejecuta run de docker que utiliza un contenedor que tiene la herramienta netchat instalada, evitando asi tener que instalarlo en la maquina en la cual se corra el TP. 
+
+La imagen utilizada es `busybox:lastest` la cual se consiguio mediante la revision de los archivos entregados por la catedra para la elaboracion del TP, vease, que dicha imagen se encuentra en el Dockerfile file del cliente. Busybox es una imagen ligera que contiene herramientas del sistema unix que pueden ser aprovechadas, en este caso se utiliza el comando `nc`
+
+Por lo tanto, se crea y se ejecuta el contenedor de docker el cual con el flag `--rm` se le indica que se elimine automaticamente al finalizar la ejecucion y mediante la conexion a la red `tp0_testing_net` se envia un mensaje al servidor definido previamente en la variable y se analiza el resultado de dicha respuesta
+
+[Refs a busybox](https://hub.docker.com/_/busybox)
+[Refs a docker network](https://docs.docker.com/engine/network/)
