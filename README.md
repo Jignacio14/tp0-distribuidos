@@ -179,7 +179,6 @@ Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/
 
 La corrección personal tendrá en cuenta la calidad del código entregado y casos de error posibles, se manifiesten o no durante la ejecución del trabajo práctico. Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
 
-
 # Respuestas 
 
 ## Ej1
@@ -233,3 +232,14 @@ Para el cliente:
 Estas lineas estan compuestas por: `ubicacion del archivo : mapeo ubicacion destino dentro del contenedor`. Estas lineas automaticamente montan los volumenes en cada uno de los contenedores levantados permitiendo asi no tener la necesidad de reconstruir las imagenes tanto del server como del cliente
 
 [Referencia usada de docker volume](docs.docker.com/engine/storage/volumes/)
+
+## Ej3
+
+Para el ejercicio 3, se genero un script `validar-echo-server` que tiene definida una variable de mensaje y el puerto del servidor a donde debe comunicarse. Dicho server ejecuta run de docker que utiliza un contenedor que tiene la herramienta netchat instalada, evitando asi tener que instalarlo en la maquina en la cual se corra el TP. 
+
+La imagen utilizada es `busybox:lastest` la cual se consiguio mediante la revision de los archivos entregados por la catedra para la elaboracion del TP, vease, que dicha imagen se encuentra en el Dockerfile file del cliente. Busybox es una imagen ligera que contiene herramientas del sistema unix que pueden ser aprovechadas, en este caso se utiliza el comando `nc`
+
+Por lo tanto, se crea y se ejecuta el contenedor de docker el cual con el flag `--rm` se le indica que se elimine automaticamente al finalizar la ejecucion y mediante la conexion a la red `tp0_testing_net` se envia un mensaje al servidor definido previamente en la variable y se analiza el resultado de dicha respuesta
+
+[Refs a busybox](https://hub.docker.com/_/busybox)
+[Refs a docker network](https://docs.docker.com/engine/network/)
