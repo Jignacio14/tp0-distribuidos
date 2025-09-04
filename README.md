@@ -179,17 +179,6 @@ Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/
 
 La corrección personal tendrá en cuenta la calidad del código entregado y casos de error posibles, se manifiesten o no durante la ejecución del trabajo práctico. Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
 
-
-
-
-
-
-
-
-
-
-
-
 ## Ej8 
 
 Para el ejercicio 8 se agrego soporte para atender multiples clientes a la vez, si bien es cierto de que es mucho mas pesado y dado a las condiciones del uso de CPU y las operaciones I/O hechas, permite que la arquitectura sea construida con multithreading, pero, por simplemente por practicar y por mayor robustes se hace la arquitectura usando multiprocessing. 
