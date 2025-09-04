@@ -54,7 +54,6 @@ class Server:
                 return
 
             store_bets([bet])   
-            logging.info(f"action: receive_message | result: success | bet: {bet}")
             client.send_confirmation(True)
             logging.info(f"action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}")
         except OSError as e:
