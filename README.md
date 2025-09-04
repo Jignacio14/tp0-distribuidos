@@ -178,3 +178,23 @@ Se espera que se redacte una sección del README en donde se indique cómo ejecu
 Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/tp0-tests) de caja negra. Se exige que la resolución de los ejercicios pase tales pruebas, o en su defecto que las discrepancias sean justificadas y discutidas con los docentes antes del día de la entrega. El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación. Respetar las entradas de log planteadas en los ejercicios, pues son las que se chequean en cada uno de los tests.
 
 La corrección personal tendrá en cuenta la calidad del código entregado y casos de error posibles, se manifiesten o no durante la ejecución del trabajo práctico. Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
+
+## Ej4 
+
+Tanto como para el cliente, como para  el sevidor se generaron manejadores para las señales
+
+### Para el servidor 
+
+Se genero una funcion que cierra los recursos que puedan estar siendo usados, en este caso se puede estar en alguna de las siguientes situaciones: 
+
+- El servidor se encuentra bloqueado aceptando: Por lo tanto se tiene que hacer el cierre correspondiente del socket para eliminar el bloqueo y por supuesto para dejar de usar el recurso 
+
+- El servidor se encuentra atendiendo un cliente: Por lo tanto se debe cerrar el socket del cliente y liberar los recursos utilizados en el sistema
+
+En ambos casos python setea el manejador programado en el constructor del objeto servidor y aplica la funcion indicada 
+
+### Para el cliente 
+
+Golang por otro lado no es tan simple a la hora de hacer el manejo de la señal, requiere un `Channel` el cual sea del tipo `os.Signal`, el mismo debe tener un buffer para evitar que se bloquee el contralador en caso que la señal llegue antes de que este seteada la configuracion del manejador 
+
+Para manejar la señal primero se debe indicar que la señal en particular se quiera manejar sea recibida en el `Channel` y posteriormente se debe  lanzar un hilo que exclusivamente se encarge de esperar la posible llegada de la señal y que en caso de llegar, cierre los recursos que estan siendo utilizados
