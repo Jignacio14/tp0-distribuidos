@@ -63,7 +63,9 @@ func (c *Client) Shutdown() {
 	if c.sigChan != nil {
 		signal.Stop(c.sigChan)
 	}
-	c.protocol.Shutdown()
+	if c.protocol != nil {
+		c.protocol.Shutdown()
+	}
 	log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
 }
 

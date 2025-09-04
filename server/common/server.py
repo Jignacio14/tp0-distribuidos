@@ -70,13 +70,15 @@ class Server:
             if not keep_reading:
                 break
             if msg == '':
-                self._clients[client_id].shutdown()
+                if client_id in self._clients:
+                    self._clients[client_id].shutdown()
                 break
             bets, errors = self.__create_bet_from_message(msg)
             if errors > 0: 
                 logging.error(f"action: apuesta_recibida | result: fail | cantidad: {errors}")
                 client.send_bad_bets(errors)
-                self._clients[client_id].shutdown()
+                if client_id in self._clients:
+                    self._clients[client_id].shutdown()
                 return 
             store_bets(bets)   
             logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
@@ -108,6 +110,8 @@ class Server:
 
     def __shutdown_clients(self):
         for client in self._clients.values():
+            if not client:
+                continue
             client.shutdown()
         self._clients = {}
 
