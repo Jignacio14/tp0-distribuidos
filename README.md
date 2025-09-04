@@ -252,3 +252,23 @@ y desde otra terminal ejecutar el script
 [Refs a busybox](https://hub.docker.com/_/busybox)
 
 [Refs a docker network](https://docs.docker.com/engine/network/)
+
+## Ej4 
+
+Tanto como para el cliente, como para  el sevidor se generaron manejadores para las señales
+
+### Para el servidor 
+
+Se genero una funcion que cierra los recursos que puedan estar siendo usados, en este caso se puede estar en alguna de las siguientes situaciones: 
+
+- El servidor se encuentra bloqueado aceptando: Por lo tanto se tiene que hacer el cierre correspondiente del socket para eliminar el bloqueo y por supuesto para dejar de usar el recurso 
+
+- El servidor se encuentra atendiendo un cliente: Por lo tanto se debe cerrar el socket del cliente y liberar los recursos utilizados en el sistema
+
+En ambos casos python setea el manejador programado en el constructor del objeto servidor y aplica la funcion indicada 
+
+### Para el cliente 
+
+Golang por otro lado no es tan simple a la hora de hacer el manejo de la señal, requiere un `Channel` el cual sea del tipo `os.Signal`, el mismo debe tener un buffer para evitar que se bloquee el contralador en caso que la señal llegue antes de que este seteada la configuracion del manejador 
+
+Para manejar la señal primero se debe indicar que la señal en particular se quiera manejar sea recibida en el `Channel` y posteriormente se debe  lanzar un hilo que exclusivamente se encarge de esperar la posible llegada de la señal y que en caso de llegar, cierre los recursos que estan siendo utilizados
