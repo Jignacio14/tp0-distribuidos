@@ -49,37 +49,16 @@ func (p *Protocol) SendBatch(batchStr string) error {
 	return p.sendAll(data)
 }
 
-func (p *Protocol) htonsUint32(val uint32) []byte {
-	bytes := make([]byte, 4)
-	binary.BigEndian.PutUint32(bytes, val)
-	return bytes
-}
-
-func (p *Protocol) ntohsUint32(data []byte) int {
-	return int(binary.BigEndian.Uint32(data))
-}
-
-func (p *Protocol) ReceiveConfirmation() bool {
-	response := make([]byte, 1)
-	err := p.receiveAll(response)
-
-	if err != nil {
-		return false
-	}
-
-	return response[0] == receivedBatchOKCode
-}
-
 func (p *Protocol) ReceivedConStatus() (int, error, bool) {
 
 	responseCode := make([]byte, 1)
 	if err := p.receiveAll(responseCode); err != nil {
-		return 0, fmt.Errorf("failed to receive response code: %w", err), false
+		return 0, err, false
 	}
 
 	amountBytes := make([]byte, 4)
 	if err := p.receiveAll(amountBytes); err != nil {
-		return 0, fmt.Errorf("failed to receive amount: %w", err), false
+		return 0, err, false
 	}
 
 	total := p.ntohsUint32(amountBytes)
@@ -93,6 +72,16 @@ func (p *Protocol) ReceivedConStatus() (int, error, bool) {
 	}
 
 	return 0, fmt.Errorf("unknown response code: %v", responseCode[0]), false
+}
+
+func (p *Protocol) htonsUint32(val uint32) []byte {
+	bytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(bytes, val)
+	return bytes
+}
+
+func (p *Protocol) ntohsUint32(data []byte) int {
+	return int(binary.BigEndian.Uint32(data))
 }
 
 func (p *Protocol) ReceivedEnd() (bool, error) {
@@ -112,9 +101,7 @@ func (p *Protocol) EndSedingBets() error {
 }
 
 func (p *Protocol) sendAll(data []byte) error {
-
 	len := len(data)
-
 	for sent := 0; sent < len; {
 		n, err := p.conn.Write(data[sent:])
 		if err != nil {
@@ -136,7 +123,6 @@ func (p *Protocol) receiveAll(array []byte) error {
 		}
 		received += n
 	}
-
 	return nil
 }
 
