@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Bet Represents a bet made by a user
 type Bet struct {
 	agency    string
 	name      string
@@ -15,27 +16,8 @@ type Bet struct {
 	number    string
 }
 
-func newBet() *Bet {
-
-	agency := os.Getenv("CLI_ID")
-	name := os.Getenv("CLI_NAME")
-	lastname := os.Getenv("CLI_LASTNAME")
-	document := os.Getenv("CLI_DOCUMENT")
-	birthdate := os.Getenv("CLI_BIRTHDATE")
-	number := os.Getenv("CLI_NUMBER")
-
-	return &Bet{
-		agency:    agency,
-		name:      name,
-		lastname:  lastname,
-		document:  document,
-		birthdate: birthdate,
-		number:    number,
-	}
-}
-
+// / Creates a bet from a string representation
 func betFromString(bet string) (*Bet, error) {
-	bet = strings.TrimSuffix(bet, "\n")
 	parts := strings.Split(bet, ",")
 
 	if len(parts) != 5 {

@@ -23,10 +23,9 @@ type ClientConfig struct {
 
 // Client Entity that encapsulates how
 type Client struct {
-	config    ClientConfig
-	sigChan   chan os.Signal
-	isRunning bool
-	protocol  *Protocol
+	config   ClientConfig
+	sigChan  chan os.Signal
+	protocol *Protocol
 }
 
 // NewClient Initializes a new client receiving the configuration
@@ -44,28 +43,34 @@ func NewClient(config ClientConfig) *Client {
 	}
 
 	client := &Client{
-		sigChan:   make(chan os.Signal, 1),
-		isRunning: true,
-		protocol:  protocol,
-		config:    config,
+		sigChan:  make(chan os.Signal, 1),
+		protocol: protocol,
+		config:   config,
 	}
 
 	signal.Notify(client.sigChan, syscall.SIGTERM)
 	return client
 }
 
-func (c *Client) Shutdown() {
+// signal handler
+func (c *Client) handleSignal() {
 	<-c.sigChan
-	close(c.sigChan)
-	c.isRunning = false
+	c.Shutdown()
+}
+
+// Shutdown Gracefully shuts down the client
+func (c *Client) Shutdown() {
+	if c.sigChan != nil {
+		signal.Stop(c.sigChan)
+	}
 	c.protocol.Shutdown()
 	log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
 }
 
 // StartClientLoop Send messages to the client until some time threshold is met
 func (c *Client) StartClientLoop() {
-	go c.Shutdown()
-	defer c.protocol.Shutdown()
+	go c.handleSignal()
+	defer c.Shutdown()
 
 	filepath := fmt.Sprintf(".data/agency-%v.csv", c.config.ID)
 	batchGenerator, err := NewBatchGenerator(filepath)
@@ -80,9 +85,26 @@ func (c *Client) StartClientLoop() {
 	err = c.protocol.SendLoteryId(c.config.ID)
 
 	if err != nil {
-		log.Errorf("action: send_lottery_id | result: fail | client_id: %v | error: %v", c.config.ID, err)
+		log.Errorf("action: send_lotery_id | result: fail | client_id: %v | error: %v", c.config.ID, err)
 		return
 	}
+
+	err, should_wait_end := c.loop(batchGenerator)
+
+	if err != nil && !should_wait_end {
+		return
+	}
+
+	if err != nil && should_wait_end {
+		return
+	}
+
+	_ = c.finishCommunication()
+
+}
+
+// loop sends batches to the server until there are no more bets to send or the server fails to process a bet
+func (c *Client) loop(batchGenerator *BatchGenerator) (error, bool) {
 
 	for batchGenerator.IsReading() {
 
@@ -90,48 +112,74 @@ func (c *Client) StartClientLoop() {
 
 		if err != nil {
 			log.Errorf("action: read_batch | result: fail | client_id: %v | error: %v", c.config.ID, err)
-			return
+			return err, false
 		}
 
-		batchStr := batch.Serialize()
-
-		err = c.protocol.SendBatch(batchStr)
+		err = c.protocol.SendBatch(batch)
 
 		if err != nil {
 			log.Errorf("action: send_batch | result: fail | client_id: %v | error: %v", c.config.ID, err)
-			return
+			return err, false
 		}
 
 		bets_processed, err, status := c.protocol.ReceivedConStatus()
 
 		if err != nil {
 			log.Errorf("action: receive_confirmation | result: fail | client_id: %v | error: %v", c.config.ID, err)
-			return
+			return err, false
 		}
 
 		if !status {
 			log.Errorf("action: apuesta_recibida | result: fail | cantidad: %v ", bets_processed)
-			break
+			return fmt.Errorf("apuestas con error"), true
 		}
 	}
 
-	err = c.protocol.EndSedingBets()
+	return nil, true
+
+}
+
+// In case all batches were sent successfully, finish the communication with the server
+func (c *Client) finishCommunication() error {
+
+	err := c.protocol.EndSedingBets()
 
 	if err != nil {
 		log.Errorf("action: end_sending_batches | result: fail | client_id: %v | error: %v", c.config.ID, err)
-		return
+		return err
 	}
 
 	winners, err := c.protocol.ReceiveWinners()
 
 	if err != nil {
-		log.Errorf("action: receive_winners | result: fail | client_id: %v | error: %v", c.config.ID, err)
-		return
+		log.Errorf("action: wait_for_ending | result: fail | client_id: %v | error: %v", c.config.ID, err)
+		return err
 	}
 
 	c.LogWinners(winners)
 
 	log.Infof("action: complete | result: success | client_id: %v", c.config.ID)
+
+	return nil
+}
+
+// / Receives the operation end from server
+func (c *Client) waitForEnding() error {
+
+	status, err := c.protocol.ReceivedEnd()
+
+	if err != nil {
+		log.Errorf("action: receive_confirmation | result: fail | client_id: %v | error: %v", c.config.ID, err)
+		return err
+	}
+
+	if !status {
+		log.Errorf("action: receive_confirmation | result: fail | client_id: %v", c.config.ID)
+		return err
+	}
+
+	return nil
+
 }
 
 func (c *Client) LogWinners(winners []string) {

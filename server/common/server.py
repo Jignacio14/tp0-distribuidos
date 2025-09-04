@@ -7,6 +7,8 @@ from common.utils import has_won, load_bets, store_bets
 from multiprocessing import Process, Barrier, Lock
 from common.utils import Bet
 
+DELIMITER = ','
+
 class Server:
     def __init__(self, port, listen_backlog, clients_num):
         # Initialize server socket
@@ -52,32 +54,37 @@ class Server:
         If a problem arises in the communication with the client, the
         client socket will also be closed
         """
-        try:
-            receiving_bets = True
-            current_client_id = client.get_agency_id()
+        current_client_id = client.get_agency_id()
+        
+        if current_client_id == -1:
+            client.shutdown()
+            return
+        
+        self._clients[current_client_id] = self._clients.get(current_client_id, client)
+        self.__process_client_bets(client, current_client_id)
+
+    def __process_client_bets(self, client: ServerProtocol, client_id):
+        receiving_bets = True
+
+        while receiving_bets:
+            keep_reading, msg = client.receive_batch()
+            receiving_bets = keep_reading
+            if not keep_reading:
+                break
+            if msg == '':
+                self._clients[client_id].shutdown()
+                break
+            bets, errors = self.__create_bet_from_message(msg)
+            if errors > 0: 
+                logging.error(f"action: apuesta_recibida | result: fail | cantidad: {errors}")
+                client.send_bad_bets(errors)
+                self._clients[client_id].shutdown()
+                return 
             self._lock.acquire()
-            self._clients[current_client_id] = self._clients.get(current_client_id, client)
+            store_bets(bets)   
             self._lock.release()
-            while receiving_bets:
-                keep_reading, msg = client.receive_batch()
-                receiving_bets = keep_reading
-                if msg == '':
-                    break
-                bets, errors = self.__create_bet_from_message(msg)
-                if errors > 0: 
-                    logging.error(f"action: apuesta_recibida | result: fail | cantidad: {errors}")
-                    client.send_bad_bets(errors)
-                    return
-                self._lock.acquire()
-                store_bets(bets)   
-                self._lock.release()    
-                logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
-                client.send_batches_received_successfully(len(bets))
-            self._barrier.wait()
-            self.__send_winners_to_client(current_client_id)
-            logging.info(f"action: received all bets from client | result: success | client_id: {current_client_id}")
-        except OSError as e:
-            logging.error(f"action: receive_message | result: fail | error: {e}")
+            logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
+            client.send_batches_received_successfully(len(bets))
 
     def __inform_winners(self, agency_id: str) -> list[Bet]:
         return [bet.document for bet in load_bets() if bet.agency == agency_id and has_won(bet)]
@@ -85,23 +92,14 @@ class Server:
     def __create_bet_from_message(self, message: str):
         bets = []
         errors = 0
-        try:
-            for bet in message.split('\n'):
-                bet_parts = bet.split(',')
-                if bet_parts == ['']:
-                    continue
-                if len(bet_parts) != 6:
-                    logging.error(f"action: parse_bet | result: fail | error: invalid_bet_format | bet_parts: {bet_parts}")
-                    errors += 1
-                    continue
-
-                bet = Bet(bet_parts[0], bet_parts[1], bet_parts[2], bet_parts[3], bet_parts[4], bet_parts[5])
-                bets.append(bet)
-        
-            return bets, errors
-        except Exception as e:
-            logging.error(f"action: parse_bet | result: fail | error: {e}")
-            return bets, errors
+        for bet_str in message:
+            splited = bet_str.split(DELIMITER)
+            if len(splited) != 6:
+                logging.error(f"action: parse_bet | result: fail | error: invalid_bet_format | bet_parts: {splited}")
+                errors += 1
+                continue
+            bets.append(Bet(*splited))
+        return bets, errors
 
     def __send_winners_to_all_clients(self):
         for client_id in self._clients.keys():
