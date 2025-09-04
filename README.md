@@ -328,3 +328,9 @@ Para el sorteo se usa toda la base del protocolo ya existente, esta vez se confi
 Una vez que se alcanza la cantidad de clientes esperada, simplemente se procede a hacer el envio de los mensajes del sorteo a cada cliente considerando enviarle a cada cliente solamente los ganadores de su loteria y no todos los elementos, el nuevo es bastante parecido a la a la logica del intercambio de las apuestas.
 
 El mensaje tiene un codigo de mensaje, una longitud y los dnis de los ganadores de la loteria
+
+## Ej8 
+
+Para el ejercicio 8 se agrego soporte para atender multiples clientes a la vez, si bien es cierto de que es mucho mas pesado y dado a las condiciones del uso de CPU y las operaciones I/O hechas, permite que la arquitectura sea construida con multithreading, pero, por simplemente por practicar y por mayor robustes se hace la arquitectura usando multiprocessing. 
+
+Para sincronizar el envio de mensajes con todos los clientes a la hora de realizar el sorteo se usa un barrier que es un IPC que cumple perfectamente con la idea de sincronizar procesos en un mismo punto comun
