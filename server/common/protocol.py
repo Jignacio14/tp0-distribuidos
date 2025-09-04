@@ -55,7 +55,6 @@ class ServerProtocol:
             bet_len = self.__receive_bet_lenght()
             bet = self.__receive_bet(bet_len)
             bets.append(bet)
-        
         return bets
 
     def send_bad_bets(self, count: int):

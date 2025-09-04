@@ -10,7 +10,6 @@ DELIMITER = ','
 
 class Server:
     def __init__(self, port, listen_backlog):
-        # Initialize server socket
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
@@ -44,13 +43,11 @@ class Server:
         client socket will also be closed
         """
         try:
-            receiving_bets = True
-            while receiving_bets:
+            while True:
                 keep_reading, msg = client.receive_batch()
-                receiving_bets = keep_reading
-                bets, errors = self.__create_bet_from_message(msg)
-                if len(bets) == 0: 
+                if not keep_reading:
                     break
+                bets, errors = self.__create_bet_from_message(msg)
                 if errors > 0: 
                     logging.error(f"action: apuesta_recibida | result: fail | cantidad: {errors}")
                     client.send_bad_bets(errors)
@@ -68,21 +65,14 @@ class Server:
     def __create_bet_from_message(self, message: str):
         bets = []
         errors = 0
-        try:
-            for bet_str in message:
-                splited = bet_str.split(DELIMITER)
-                if splited == ['']:
-                    logging.error("WARNING: Empty bet received")
-                if len(splited) != 6:
-                    logging.error(f"action: parse_bet | result: fail | error: invalid_bet_format | bet_parts: {splited}")
-                    errors += 1
-                    continue
-                bets.append(Bet(*splited))
-        
-            return bets, errors
-        except Exception as e:
-            logging.error(f"action: parse_bet | result: fail | error: {e}")
-            return bets, errors
+        for bet_str in message:
+            splited = bet_str.split(DELIMITER)
+            if len(splited) != 6:
+                logging.error(f"action: parse_bet | result: fail | error: invalid_bet_format | bet_parts: {splited}")
+                errors += 1
+                continue
+            bets.append(Bet(*splited))
+        return bets, errors
 
     def __accept_new_connection(self):
         """
