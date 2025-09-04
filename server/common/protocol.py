@@ -73,9 +73,9 @@ class ServerProtocol:
     
     def shutdown(self):
         try:
+            if not self._client_skt:
+                return
             self._client_skt.shutdown(socket.SHUT_RDWR)
             self._client_skt.close()
         except OSError as e:
             logging.error(f"action: shutdown_connection | result: fail | error: {e}")
-            return False
-        return True
