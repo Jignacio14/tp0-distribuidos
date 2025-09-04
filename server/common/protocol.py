@@ -33,16 +33,14 @@ class ServerProtocol:
         receive the op code (1 byte int) from the socket.
         """
         op_code_byte = self.__receive_all(OP_CODE_LEN)
-        op_code = int.from_bytes(op_code_byte, byteorder='big')
-        return op_code
+        return int.from_bytes(op_code_byte, byteorder='big')
     
     def __receive_bet_lenght(self) -> int:
         """
         receive the length of the bet (4 bytes int) from the socket.
         """
         length_bytes = self.__receive_all(BET_LEN)
-        length = int.from_bytes(length_bytes, byteorder='big')
-        return length
+        return int.from_bytes(length_bytes, byteorder='big')
     
     def __receive_bet(self, length) -> str:
         """"
