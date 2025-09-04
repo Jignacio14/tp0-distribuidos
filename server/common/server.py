@@ -52,27 +52,34 @@ class Server:
         If a problem arises in the communication with the client, the
         client socket will also be closed
         """
-        try:
-            receiving_bets = True
-            current_client_id = client.get_agency_id()
-            self._clients[current_client_id] = self._clients.get(current_client_id, client)
-            while receiving_bets:
-                keep_reading, msg = client.receive_batch()
-                receiving_bets = keep_reading
-                if not keep_reading:
-                    break
-                if msg == '':
-                    break
-                bets, errors = self.__create_bet_from_message(msg)
-                if errors > 0: 
-                    logging.error(f"action: apuesta_recibida | result: fail | cantidad: {errors}")
-                    client.send_bad_bets(errors)
-                    return
-                store_bets(bets)   
-                logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
-                client.send_batches_received_successfully(len(bets))
-        except OSError as e:
-            logging.error(f"action: receive_message | result: fail | error: {e}")
+        current_client_id = client.get_agency_id()
+        
+        if current_client_id == -1:
+            client.shutdown()
+            return
+        
+        self._clients[current_client_id] = self._clients.get(current_client_id, client)
+        self.__process_client_bets(client)
+
+    def __process_client_bets(self, client: ServerProtocol):
+        receiving_bets = True
+
+        while receiving_bets:
+            keep_reading, msg = client.receive_batch()
+            receiving_bets = keep_reading
+            if not keep_reading:
+                break
+            if msg == '':
+                break
+            bets, errors = self.__create_bet_from_message(msg)
+            if errors > 0: 
+                logging.error(f"action: apuesta_recibida | result: fail | cantidad: {errors}")
+                client.send_bad_bets(errors)
+                return
+            store_bets(bets)   
+            logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
+            client.send_batches_received_successfully(len(bets))
+        pass
 
     def __inform_winners(self, agency_id: str) -> list[Bet]:
         return [bet.document for bet in load_bets() if bet.agency == agency_id and has_won(bet)]
