@@ -23,10 +23,9 @@ type ClientConfig struct {
 
 // Client Entity that encapsulates how
 type Client struct {
-	config    ClientConfig
-	sigChan   chan os.Signal
-	isRunning bool
-	protocol  *Protocol
+	config   ClientConfig
+	sigChan  chan os.Signal
+	protocol *Protocol
 }
 
 // NewClient Initializes a new client receiving the configuration
@@ -44,28 +43,34 @@ func NewClient(config ClientConfig) *Client {
 	}
 
 	client := &Client{
-		sigChan:   make(chan os.Signal, 1),
-		isRunning: true,
-		protocol:  protocol,
-		config:    config,
+		sigChan:  make(chan os.Signal, 1),
+		protocol: protocol,
+		config:   config,
 	}
 
 	signal.Notify(client.sigChan, syscall.SIGTERM)
 	return client
 }
 
-func (c *Client) Shutdown() {
+// signal handler
+func (c *Client) handleSignal() {
 	<-c.sigChan
-	close(c.sigChan)
-	c.isRunning = false
+	c.Shutdown()
+}
+
+// Shutdown Gracefully shuts down the client
+func (c *Client) Shutdown() {
+	if c.sigChan != nil {
+		signal.Stop(c.sigChan)
+	}
 	c.protocol.Shutdown()
 	log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
 }
 
 // StartClientLoop Send messages to the client until some time threshold is met
 func (c *Client) StartClientLoop() {
-	go c.Shutdown()
-	defer c.protocol.Shutdown()
+	go c.handleSignal()
+	defer c.Shutdown()
 
 	filepath := fmt.Sprintf(".data/agency-%v.csv", c.config.ID)
 	batchGenerator, err := NewBatchGenerator(filepath)
@@ -92,6 +97,7 @@ func (c *Client) StartClientLoop() {
 
 }
 
+// loop sends batches to the server until there are no more bets to send or the server fails to process a bet
 func (c *Client) loop(batchGenerator *BatchGenerator) (error, bool) {
 
 	for batchGenerator.IsReading() {
@@ -129,6 +135,7 @@ func (c *Client) loop(batchGenerator *BatchGenerator) (error, bool) {
 
 }
 
+// In case all batches were sent successfully, finish the communication with the server
 func (c *Client) finishCommunication() error {
 
 	err := c.protocol.EndSedingBets()
@@ -150,6 +157,7 @@ func (c *Client) finishCommunication() error {
 	return nil
 }
 
+// / Receives the operation end from server
 func (c *Client) waitForEnding() error {
 
 	status, err := c.protocol.ReceivedEnd()
