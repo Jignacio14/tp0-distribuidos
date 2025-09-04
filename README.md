@@ -272,3 +272,26 @@ En ambos casos python setea el manejador programado en el constructor del objeto
 Golang por otro lado no es tan simple a la hora de hacer el manejo de la señal, requiere un `Channel` el cual sea del tipo `os.Signal`, el mismo debe tener un buffer para evitar que se bloquee el contralador en caso que la señal llegue antes de que este seteada la configuracion del manejador 
 
 Para manejar la señal primero se debe indicar que la señal en particular se quiera manejar sea recibida en el `Channel` y posteriormente se debe  lanzar un hilo que exclusivamente se encarge de esperar la posible llegada de la señal y que en caso de llegar, cierre los recursos que estan siendo utilizados
+## Ej5
+
+Para la comunicacion establecer la nueva comunicacion se genero un protocolo sencillo para poder pasar las apuestas 
+
+El cliente como solo debe enviar su apuesta, genera la apuesta, la serializa a string y se la entrega al protocolo. El protocolo envia un mensaje al server haciendo lo siguiente:
+
+```
+-------------------------------------------
+| Cod op | longitud | apuesta-serializada |
+-----------------------------------------
+| 1 byte | 4 bytes  | longitud bytes      |
+-------------------------------------------
+```
+
+Siguiendo la secuencia 
+
+````
+Client -> Se conecta con el server -> Server
+Client -> Envia paquete de apuesta -> Server
+Client <- Espera respuesta server
+Server <- Procesa apuesta
+Server -> Pasa un codigo de exito o error segun sea el caso -> Cliente 
+````
