@@ -15,27 +15,7 @@ type Bet struct {
 	number    string
 }
 
-func newBet() *Bet {
-
-	agency := os.Getenv("CLI_ID")
-	name := os.Getenv("CLI_NAME")
-	lastname := os.Getenv("CLI_LASTNAME")
-	document := os.Getenv("CLI_DOCUMENT")
-	birthdate := os.Getenv("CLI_BIRTHDATE")
-	number := os.Getenv("CLI_NUMBER")
-
-	return &Bet{
-		agency:    agency,
-		name:      name,
-		lastname:  lastname,
-		document:  document,
-		birthdate: birthdate,
-		number:    number,
-	}
-}
-
 func betFromString(bet string) (*Bet, error) {
-	bet = strings.TrimSuffix(bet, "\n")
 	parts := strings.Split(bet, ",")
 
 	if len(parts) != 5 {
