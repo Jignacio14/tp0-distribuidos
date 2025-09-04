@@ -3,9 +3,10 @@ import socket
 import logging
 
 from common.protocol import ServerProtocol
-from common.utils import store_bets
+from common.utils import store_bets, Bet
 
-from common.utils import Bet
+DELIMITER = ','
+
 
 class Server:
     def __init__(self, port, listen_backlog):
@@ -47,8 +48,6 @@ class Server:
             while receiving_bets:
                 keep_reading, msg = client.receive_batch()
                 receiving_bets = keep_reading
-                if msg == '':
-                    break
                 bets, errors = self.__create_bet_from_message(msg)
                 if errors > 0: 
                     logging.error(f"action: apuesta_recibida | result: fail | cantidad: {errors}")
@@ -68,17 +67,15 @@ class Server:
         bets = []
         errors = 0
         try:
-            for bet in message.split('\n'):
-                bet_parts = bet.split(',')
-                if bet_parts == ['']:
-                    continue
-                if len(bet_parts) != 6:
-                    logging.error(f"action: parse_bet | result: fail | error: invalid_bet_format | bet_parts: {bet_parts}")
+            for bet_str in message:
+                splited = bet_str.split(DELIMITER)
+                if splited == ['']:
+                    logging.error("WARNING: Empty bet received")
+                if len(splited) != 6:
+                    logging.error(f"action: parse_bet | result: fail | error: invalid_bet_format | bet_parts: {splited}")
                     errors += 1
                     continue
-
-                bet = Bet(bet_parts[0], bet_parts[1], bet_parts[2], bet_parts[3], bet_parts[4], bet_parts[5])
-                bets.append(bet)
+                bets.append(Bet(*splited))
         
             return bets, errors
         except Exception as e:

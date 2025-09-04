@@ -3,6 +3,7 @@ import socket
 
 OP_CODE_LEN = 1
 BATCH_LEN = 4
+BET_LEN = 4
 
 BATCH_SEND_OP_CODE = 1
 BATCH_RECEIVED_OK_CODE = 2
@@ -25,29 +26,37 @@ class ServerProtocol:
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
             return ''
+        
+    def __receive_bet(self, length) -> str:
+        """"
+        Receive a bet of `length` bytes from the socket.
+        """
+        batch_bytes = self.__receive_all(length)
+        return batch_bytes.decode('utf-8')
 
-    def send_confirmation(self, confirmation: bool):
-        try:
-            msg = 'OK' if confirmation else 'NO'
-            self._client_skt.sendall(msg.encode('utf-8'))
-        except OSError as e:
-            logging.error(f"action: send_message | result: fail | error: {e}")
-            return False
-        return True
-    
     def __receive_op_code(self) -> int:
         op_code_byte = self.__receive_all(OP_CODE_LEN)
-        op_code = int.from_bytes(op_code_byte, byteorder='big')
-        return op_code
+        return int.from_bytes(op_code_byte, byteorder='big')
         
     def __receive_batch_lenght(self) -> int:
         length_bytes = self.__receive_all(BATCH_LEN)
-        length = int.from_bytes(length_bytes, byteorder='big')
-        return length
+        return int.from_bytes(length_bytes, byteorder='big')
+
+    def __receive_bet_lenght(self) -> int:
+        """
+        receive the length of the bet (4 bytes int) from the socket.
+        """
+        length_bytes = self.__receive_all(BET_LEN)
+        return int.from_bytes(length_bytes, byteorder='big')
 
     def __receive_batch(self, length) -> str:
-        batch_bytes = self.__receive_all(length)
-        return batch_bytes.decode('utf-8')
+        bets = []
+        for _ in range(length):
+            bet_len = self.__receive_bet_lenght()
+            bet = self.__receive_bet(bet_len)
+            bets.append(bet)
+        
+        return bets
 
     def send_bad_bets(self, count: int):
         self.__send_template(BATCH_RECEIVED_FAIL_CODE, count)

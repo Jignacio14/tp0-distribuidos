@@ -58,7 +58,7 @@ func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
 			continue
 		}
 
-		err = batch.AddBet(*bet)
+		err = batch.AddBet(bet)
 
 		if err != nil {
 			bg.lastLineRead = betStr
@@ -84,7 +84,7 @@ func (bg *BatchGenerator) processLastLine(batch *Batch) error {
 		return nil
 	}
 
-	err = batch.AddBet(*bet)
+	err = batch.AddBet(bet)
 
 	if err != nil {
 		return err

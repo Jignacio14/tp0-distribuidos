@@ -27,9 +27,9 @@ func NewProtocol(serverAdr string) (*Protocol, error) {
 	return protocol, nil
 }
 
-func (p *Protocol) SendBatch(batchStr string) error {
+func (p *Protocol) SendBatch(batch *Batch) error {
 
-	data := []byte(batchStr)
+	// data := []byte(batchStr)
 
 	opCode := []byte{sendBatchCode}
 	err := p.sendAll(opCode)
@@ -38,15 +38,41 @@ func (p *Protocol) SendBatch(batchStr string) error {
 		return err
 	}
 
-	length := p.htonsUint32(uint32(len(data)))
+	lenBats := p.htonsUint32(uint32(len(batch.bets)))
 
-	err = p.sendAll(length)
+	err = p.sendAll(lenBats)
 
 	if err != nil {
 		return err
 	}
 
-	return p.sendAll(data)
+	for _, bet := range batch.bets {
+		serialize := bet.serialize()
+		err = p.SendBet(serialize)
+
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p *Protocol) SendBet(bet string) error {
+	lenData := p.htonsUint32(uint32(len(bet)))
+
+	err := p.sendAll(lenData)
+
+	if err != nil {
+		return err
+	}
+
+	err = p.sendAll([]byte(bet))
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p *Protocol) ReceivedConStatus() (int, error, bool) {

@@ -2,7 +2,6 @@ package common
 
 import (
 	"fmt"
-	"strings"
 )
 
 // 8kb lumit for each batch
@@ -10,7 +9,7 @@ const Limit = 8000
 
 // Batch entity that encapsulates a group of bets to be sent together
 type Batch struct {
-	bets []string
+	bets []*Bet
 	size int
 	max  int
 }
@@ -19,7 +18,7 @@ type Batch struct {
 // if limit is greater than the constant Limit, Limit is used instead
 func NewBatch(max int) *Batch {
 	return &Batch{
-		bets: make([]string, 0, Limit),
+		bets: make([]*Bet, 0, Limit),
 		max:  max,
 		size: Limit,
 	}
@@ -32,19 +31,13 @@ func (b *Batch) canAppend(serialize string) bool {
 
 // Adds a new bet if it does not exceed the batch size limit
 // returns an error if the bet cannot be added
-func (b *Batch) AddBet(bet Bet) error {
+func (b *Batch) AddBet(bet *Bet) error {
 	serialize := bet.serialize()
-	serialize = strings.Trim(serialize, "\n")
 	if !b.canAppend(serialize) {
 		return fmt.Errorf("batch size exceeded")
 	}
 
-	b.bets = append(b.bets, serialize)
+	b.bets = append(b.bets, bet)
 	b.size -= len(serialize)
 	return nil
-}
-
-// Serializes the batch into a string, with bets separated by new lines
-func (b *Batch) Serialize() string {
-	return strings.Join(b.bets, "\n")
 }

@@ -109,9 +109,7 @@ func (c *Client) loop(batchGenerator *BatchGenerator) (error, bool) {
 			return err, false
 		}
 
-		batchStr := batch.Serialize()
-
-		err = c.protocol.SendBatch(batchStr)
+		err = c.protocol.SendBatch(batch)
 
 		if err != nil {
 			log.Errorf("action: send_batch | result: fail | client_id: %v | error: %v", c.config.ID, err)
