@@ -79,7 +79,6 @@ class Server:
             store_bets(bets)   
             logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
             client.send_batches_received_successfully(len(bets))
-        pass
 
     def __inform_winners(self, agency_id: str) -> list[Bet]:
         return [bet.document for bet in load_bets() if bet.agency == agency_id and has_won(bet)]
