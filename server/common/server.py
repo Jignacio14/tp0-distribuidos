@@ -42,22 +42,16 @@ class Server:
         If a problem arises in the communication with the client, the
         client socket will also be closed
         """
-        try:
-            serialized_bet = client.receive_client_info()
-            bet = self.__create_bet_from_message(serialized_bet)
-            if not bet: 
-                logging.error("action: receive_message | result: fail | error: invalid_bet")
-                client.send_confirmation(False)
-                return
+        serialized_bet = client.receive_client_info()
+        bet = self.__create_bet_from_message(serialized_bet)
+        if not bet: 
+            logging.error("action: receive_message | result: fail | error: invalid_bet")
+            client.send_confirmation(False)
+            return
 
-            store_bets([bet])   
-            client.send_confirmation(True)
-            logging.info(f"action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}")
-        except OSError as e:
-            logging.error(f"action: receive_message | result: fail | error: {e}")
-        finally:
-            client.shutdown()
-            self._client = None
+        store_bets([bet])   
+        client.send_confirmation(True)
+        logging.info(f"action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}")
 
     def __create_bet_from_message(self, message: str):
         msg_parts = message.split(DELIMITER)
