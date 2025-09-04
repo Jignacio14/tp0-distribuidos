@@ -178,3 +178,27 @@ Se espera que se redacte una sección del README en donde se indique cómo ejecu
 Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/tp0-tests) de caja negra. Se exige que la resolución de los ejercicios pase tales pruebas, o en su defecto que las discrepancias sean justificadas y discutidas con los docentes antes del día de la entrega. El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación. Respetar las entradas de log planteadas en los ejercicios, pues son las que se chequean en cada uno de los tests.
 
 La corrección personal tendrá en cuenta la calidad del código entregado y casos de error posibles, se manifiesten o no durante la ejecución del trabajo práctico. Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
+
+## Ej5
+
+Para la comunicacion establecer la nueva comunicacion se genero un protocolo sencillo para poder pasar las apuestas 
+
+El cliente como solo debe enviar su apuesta, genera la apuesta, la serializa a string y se la entrega al protocolo. El protocolo envia un mensaje al server haciendo lo siguiente:
+
+```
+-------------------------------------------
+| Cod op | longitud | apuesta-serializada |
+-----------------------------------------
+| 1 byte | 4 bytes  | longitud bytes      |
+-------------------------------------------
+```
+
+Siguiendo la secuencia 
+
+````
+Client -> Se conecta con el server -> Server
+Client -> Envia paquete de apuesta -> Server
+Client <- Espera respuesta server
+Server <- Procesa apuesta
+Server -> Pasa un codigo de exito o error segun sea el caso -> Cliente 
+````
