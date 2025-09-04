@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Bet Represents a bet made by a user
 type Bet struct {
 	agency    string
 	name      string
@@ -15,6 +16,7 @@ type Bet struct {
 	number    string
 }
 
+// / Creates a bet from a string representation
 func betFromString(bet string) (*Bet, error) {
 	parts := strings.Split(bet, ",")
 

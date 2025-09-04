@@ -5,6 +5,7 @@ import (
 	"os"
 )
 
+// BatchGenerator Reads bets from a file and generates batches
 type BatchGenerator struct {
 	file         *os.File
 	scanner      *bufio.Scanner
@@ -12,6 +13,7 @@ type BatchGenerator struct {
 	lastLineRead string
 }
 
+// / Creates a new BatchGenerator for the given file path
 func NewBatchGenerator(filePath string) (*BatchGenerator, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -26,28 +28,20 @@ func NewBatchGenerator(filePath string) (*BatchGenerator, error) {
 	}, nil
 }
 
+// Indicates if there are more bets to read
 func (bg *BatchGenerator) IsReading() bool {
 	return bg.isReading
 }
 
+// / Reads the next batch of bets from the file
 func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
+
 	batch := NewBatch(batchSize)
 
-	if bg.lastLineRead != "" {
+	err := bg.processLastLine(batch)
 
-		bet, err := betFromString(bg.lastLineRead)
-
-		if err != nil {
-			return nil, err
-		}
-
-		err = batch.AddBet(*bet)
-
-		if err != nil {
-			return batch, nil
-		}
-
-		bg.lastLineRead = ""
+	if err != nil {
+		return batch, err
 	}
 
 	for bg.scanner.Scan() {
@@ -59,8 +53,9 @@ func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
 		}
 
 		bet, err := betFromString(betStr)
+
 		if err != nil {
-			return nil, err
+			continue
 		}
 
 		err = batch.AddBet(*bet)
@@ -76,6 +71,31 @@ func (bg *BatchGenerator) Read(batchSize int) (*Batch, error) {
 	return batch, nil
 }
 
+// / Processes the last line read that couldn't be added to the previous batch
+func (bg *BatchGenerator) processLastLine(batch *Batch) error {
+	if bg.lastLineRead == "" {
+		return nil
+	}
+
+	bet, err := betFromString(bg.lastLineRead)
+
+	if err != nil {
+		bg.lastLineRead = ""
+		return nil
+	}
+
+	err = batch.AddBet(*bet)
+
+	if err != nil {
+		return err
+	}
+
+	bg.lastLineRead = ""
+
+	return nil
+}
+
+// Closes the underlying file
 func (bg *BatchGenerator) Close() {
 	bg.file.Close()
 }
