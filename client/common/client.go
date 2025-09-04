@@ -53,18 +53,22 @@ func NewClient(config ClientConfig) *Client {
 }
 
 func (c *Client) Shutdown() {
-	<-c.sigChan
 	close(c.sigChan)
 	c.isRunning = false
 	c.protocol.Shutdown()
 	log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
 }
 
+func (c *Client) handleSignal() {
+	<-c.sigChan
+	c.Shutdown()
+}
+
 // StartClientLoop Send messages to the client until some time threshold is met
 func (c *Client) StartClientLoop() {
 	// There is an autoincremental msgID to identify every message sent
 	// Messages if the message amount threshold has not been surpassed
-	go c.Shutdown()
+	go c.handleSignal()
 
 	if !c.isRunning {
 		return
