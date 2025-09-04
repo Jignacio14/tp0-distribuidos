@@ -77,7 +77,7 @@ func (c *Client) StartClientLoop() {
 	}
 
 	bet := newBet()
-	err := c.protocol.SendClientInfo(bet.serialize())
+	err := c.protocol.SendBet(bet.serialize())
 
 	if err != nil {
 		log.Errorf("action: send_message | result: fail | client_id: %v | error: %v",
@@ -87,13 +87,10 @@ func (c *Client) StartClientLoop() {
 		return
 	}
 
-	confirmation := c.protocol.ReceiveConfirmation()
+	err = c.protocol.ReceiveConfirmation()
 
-	if !confirmation {
-		log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
-			c.config.ID,
-			confirmation,
-		)
+	if err != nil {
+		log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v", c.config.ID, err)
 		return
 	}
 

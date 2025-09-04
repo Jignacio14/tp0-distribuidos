@@ -1,12 +1,19 @@
 package common
 
 import (
+	"encoding/binary"
+	"fmt"
 	"net"
 )
 
 type Protocol struct {
 	conn net.Conn
 }
+
+const (
+	sendBetCode      = 0x01
+	confirmationCode = 0x02
+)
 
 func NewProtocol(serverAdr string) (*Protocol, error) {
 	conn, err := net.Dial("tcp", serverAdr)
@@ -16,23 +23,6 @@ func NewProtocol(serverAdr string) (*Protocol, error) {
 
 	protocol := &Protocol{conn: conn}
 	return protocol, nil
-}
-
-func (p *Protocol) SendClientInfo(clientInfo string) error {
-	clientInfo += "\n"
-	data := []byte(clientInfo)
-	return p.sendAll(data)
-}
-
-func (p *Protocol) ReceiveConfirmation() bool {
-	response := make([]byte, 2)
-	_, err := p.receiveAll(2, response)
-
-	if err != nil {
-		return false
-	}
-
-	return string(response) == "OK"
 }
 
 func (p *Protocol) sendAll(data []byte) error {
@@ -50,18 +40,64 @@ func (p *Protocol) sendAll(data []byte) error {
 	return nil
 }
 
-func (p *Protocol) receiveAll(len uint, array []byte) (int, error) {
+func (p *Protocol) receiveAll(array []byte) error {
+	len := len(array)
 	received := 0
-
 	for received < int(len) {
 		n, err := p.conn.Read(array[received:])
 		if err != nil {
-			return 0, err
+			return err
 		}
 		received += n
 	}
 
-	return received, nil
+	return nil
+}
+
+func (p *Protocol) htonsUint32(val uint32) []byte {
+	bytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(bytes, val)
+	return bytes
+}
+
+func (p *Protocol) SendBet(bet string) error {
+	lenData := p.htonsUint32(uint32(len(bet)))
+	opCode := []byte{sendBetCode}
+
+	err := p.sendAll(opCode)
+
+	if err != nil {
+		return err
+	}
+
+	err = p.sendAll(lenData)
+
+	if err != nil {
+		return err
+	}
+
+	err = p.sendAll([]byte(bet))
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Protocol) ReceiveConfirmation() error {
+	opCode := make([]byte, 1)
+	err := p.receiveAll(opCode)
+
+	if err != nil {
+		return err
+	}
+
+	if opCode[0] != confirmationCode {
+		return fmt.Errorf("invalid op code received: %v", opCode[0])
+	}
+
+	return nil
 }
 
 func (p *Protocol) Shutdown() {
