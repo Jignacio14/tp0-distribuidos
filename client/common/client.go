@@ -77,13 +77,30 @@ func (c *Client) StartClientLoop() {
 
 	defer batchGenerator.Close()
 
+	err, should_wait_end := c.loop(batchGenerator)
+
+	if err != nil && !should_wait_end {
+		return
+	}
+
+	if err != nil && should_wait_end {
+		_ = c.waitForEnding()
+		return
+	}
+
+	_ = c.finishCommunication()
+
+}
+
+func (c *Client) loop(batchGenerator *BatchGenerator) (error, bool) {
+
 	for batchGenerator.IsReading() {
 
 		batch, err := batchGenerator.Read(c.config.MaxBatchSize)
 
 		if err != nil {
 			log.Errorf("action: read_batch | result: fail | client_id: %v | error: %v", c.config.ID, err)
-			return
+			return err, false
 		}
 
 		batchStr := batch.Serialize()
@@ -92,41 +109,61 @@ func (c *Client) StartClientLoop() {
 
 		if err != nil {
 			log.Errorf("action: send_batch | result: fail | client_id: %v | error: %v", c.config.ID, err)
-			return
+			return err, false
 		}
 
 		bets_processed, err, status := c.protocol.ReceivedConStatus()
 
 		if err != nil {
 			log.Errorf("action: receive_confirmation | result: fail | client_id: %v | error: %v", c.config.ID, err)
-			return
+			return err, false
 		}
 
 		if !status {
 			log.Errorf("action: apuesta_recibida | result: fail | cantidad: %v ", bets_processed)
-			break
+			return err, true
 		}
 	}
 
-	err = c.protocol.EndSedingBets()
+	return nil, true
+
+}
+
+func (c *Client) finishCommunication() error {
+
+	err := c.protocol.EndSedingBets()
 
 	if err != nil {
 		log.Errorf("action: end_sending_batches | result: fail | client_id: %v | error: %v", c.config.ID, err)
-		return
+		return err
 	}
+
+	err = c.waitForEnding()
+
+	if err != nil {
+		log.Errorf("action: wait_for_ending | result: fail | client_id: %v | error: %v", c.config.ID, err)
+		return err
+	}
+
+	log.Infof("action: complete | result: success | client_id: %v", c.config.ID)
+
+	return nil
+}
+
+func (c *Client) waitForEnding() error {
 
 	status, err := c.protocol.ReceivedEnd()
 
 	if err != nil {
 		log.Errorf("action: receive_confirmation | result: fail | client_id: %v | error: %v", c.config.ID, err)
-		return
+		return err
 	}
 
 	if !status {
 		log.Errorf("action: receive_confirmation | result: fail | client_id: %v", c.config.ID)
-		return
+		return err
 	}
 
-	log.Infof("action: complete | result: success | client_id: %v", c.config.ID)
+	return nil
 
 }
