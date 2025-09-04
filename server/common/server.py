@@ -42,7 +42,7 @@ class Server:
         If a problem arises in the communication with the client, the
         client socket will also be closed
         """
-        serialized_bet = client.receive_client_info()
+        serialized_bet = client.receive_bet()
         bet = self.__create_bet_from_message(serialized_bet)
         if not bet: 
             logging.error("action: receive_message | result: fail | error: invalid_bet")

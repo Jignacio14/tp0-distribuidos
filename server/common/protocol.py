@@ -16,7 +16,7 @@ class ServerProtocol:
         self._client_skt = client_ckt
 
     
-    def receive_client_info(self):
+    def receive_bet(self):
         try:
             op_code = self.__receive_op_code()
             if op_code != CLIENT_MSG_CODE:
