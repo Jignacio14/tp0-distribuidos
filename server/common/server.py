@@ -7,6 +7,8 @@ from common.utils import has_won, load_bets, store_bets
 
 from common.utils import Bet
 
+DELIMITER = ','
+
 class Server:
     def __init__(self, port, listen_backlog, clients_num):
         # Initialize server socket
@@ -57,6 +59,8 @@ class Server:
             while receiving_bets:
                 keep_reading, msg = client.receive_batch()
                 receiving_bets = keep_reading
+                if not keep_reading:
+                    break
                 if msg == '':
                     break
                 bets, errors = self.__create_bet_from_message(msg)
@@ -77,24 +81,14 @@ class Server:
     def __create_bet_from_message(self, message: str):
         bets = []
         errors = 0
-        try:
-            for bet in message.split('\n'):
-                bet_parts = bet.split(',')
-                if bet_parts == ['']:
-                    continue
-                if len(bet_parts) != 6:
-                    logging.error(f"action: parse_bet | result: fail | error: invalid_bet_format | bet_parts: {bet_parts}")
-                    errors += 1
-                    continue
-
-                bet = Bet(bet_parts[0], bet_parts[1], bet_parts[2], bet_parts[3], bet_parts[4], bet_parts[5])
-                bets.append(bet)
-        
-            return bets, errors
-        except Exception as e:
-            logging.error(f"action: parse_bet | result: fail | error: {e}")
-            return bets, errors
-
+        for bet_str in message:
+            splited = bet_str.split(DELIMITER)
+            if len(splited) != 6:
+                logging.error(f"action: parse_bet | result: fail | error: invalid_bet_format | bet_parts: {splited}")
+                errors += 1
+                continue
+            bets.append(Bet(*splited))
+        return bets, errors
     def __send_winners_to_all_clients(self):
         for client_id in self._clients.keys():
             winners = self.__inform_winners(client_id)
