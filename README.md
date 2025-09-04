@@ -178,3 +178,20 @@ Se espera que se redacte una sección del README en donde se indique cómo ejecu
 Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/tp0-tests) de caja negra. Se exige que la resolución de los ejercicios pase tales pruebas, o en su defecto que las discrepancias sean justificadas y discutidas con los docentes antes del día de la entrega. El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación. Respetar las entradas de log planteadas en los ejercicios, pues son las que se chequean en cada uno de los tests.
 
 La corrección personal tendrá en cuenta la calidad del código entregado y casos de error posibles, se manifiesten o no durante la ejecución del trabajo práctico. Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
+
+
+
+
+
+
+
+
+
+
+
+
+## Ej8 
+
+Para el ejercicio 8 se agrego soporte para atender multiples clientes a la vez, si bien es cierto de que es mucho mas pesado y dado a las condiciones del uso de CPU y las operaciones I/O hechas, permite que la arquitectura sea construida con multithreading, pero, por simplemente por practicar y por mayor robustes se hace la arquitectura usando multiprocessing. 
+
+Para sincronizar el envio de mensajes con todos los clientes a la hora de realizar el sorteo se usa un barrier que es un IPC que cumple perfectamente con la idea de sincronizar procesos en un mismo punto comun

@@ -79,6 +79,7 @@ class Server:
                 logging.error(f"action: apuesta_recibida | result: fail | cantidad: {errors}")
                 client.send_bad_bets(errors)
                 self._clients[client_id].shutdown()
+                self._barrier.wait()
                 return 
             self._lock.acquire()
             store_bets(bets)   
@@ -103,15 +104,6 @@ class Server:
                 continue
             bets.append(Bet(*splited))
         return bets, errors
-
-    def __send_winners_to_all_clients(self):
-        for client_id in self._clients.keys():
-            winners = self.__inform_winners(client_id)
-            try:
-                self._clients[client_id].send_winners(winners)
-                logging.info(f"action: informar_ganadores | result: success | cantidad: {len(winners)}")
-            except OSError as e:
-                logging.error(f"action: informar_ganadores | result: fail | error: {e}")
 
     def __send_winners_to_client(self, client_id: str):
         winners = self.__inform_winners(client_id)
