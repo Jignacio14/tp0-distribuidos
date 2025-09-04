@@ -49,6 +49,8 @@ class Server:
                 keep_reading, msg = client.receive_batch()
                 receiving_bets = keep_reading
                 bets, errors = self.__create_bet_from_message(msg)
+                if len(bets) == 0: 
+                    break
                 if errors > 0: 
                     logging.error(f"action: apuesta_recibida | result: fail | cantidad: {errors}")
                     client.send_bad_bets(errors)
