@@ -178,3 +178,12 @@ Se espera que se redacte una sección del README en donde se indique cómo ejecu
 Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/tp0-tests) de caja negra. Se exige que la resolución de los ejercicios pase tales pruebas, o en su defecto que las discrepancias sean justificadas y discutidas con los docentes antes del día de la entrega. El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación. Respetar las entradas de log planteadas en los ejercicios, pues son las que se chequean en cada uno de los tests.
 
 La corrección personal tendrá en cuenta la calidad del código entregado y casos de error posibles, se manifiesten o no durante la ejecución del trabajo práctico. Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
+
+
+## Ej6
+
+Para el sorteo se usa toda la base del protocolo ya existente, esta vez se configuro en una constante en el generador del docker compose como variable de entono para definir la cantidad de clientes. 
+
+Una vez que se alcanza la cantidad de clientes esperada, simplemente se procede a hacer el envio de los mensajes del sorteo a cada cliente considerando enviarle a cada cliente solamente los ganadores de su loteria y no todos los elementos, el nuevo es bastante parecido a la a la logica del intercambio de las apuestas.
+
+El mensaje tiene un codigo de mensaje, una longitud y los dnis de los ganadores de la loteria
