@@ -59,20 +59,26 @@ func (c *Client) createClientSocket() error {
 }
 
 func (c *Client) Shutdown() {
-	<-c.sigChan
-	close(c.sigChan)
 	c.isRunning = false
+	if c.sigChan != nil {
+		close(c.sigChan)
+	}
 	if c.conn != nil {
 		c.conn.Close()
 	}
 	log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
 }
 
+func (c *Client) handleSignal() {
+	<-c.sigChan
+	c.Shutdown()
+}
+
 // StartClientLoop Send messages to the client until some time threshold is met
 func (c *Client) StartClientLoop() {
 	// There is an autoincremental msgID to identify every message sent
 	// Messages if the message amount threshold has not been surpassed
-	go c.Shutdown()
+	go c.handleSignal()
 	for msgID := 1; msgID <= c.config.LoopAmount; msgID++ {
 		if !c.isRunning {
 			return
@@ -131,5 +137,6 @@ func (c *Client) StartClientLoop() {
 		time.Sleep(c.config.LoopPeriod)
 
 	}
+	c.Shutdown()
 	log.Infof("action: loop_finished | result: success | client_id: %v", c.config.ID)
 }
