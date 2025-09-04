@@ -29,7 +29,7 @@ class ServerProtocol:
             return True, client_info
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
-            return False, ''
+            return True, ''
     
     def __receive_op_code(self) -> int:
         op_code_byte = self.__receive_all(OP_CODE_LEN)

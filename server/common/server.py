@@ -59,9 +59,9 @@ class Server:
             return
         
         self._clients[current_client_id] = self._clients.get(current_client_id, client)
-        self.__process_client_bets(client)
+        self.__process_client_bets(client, current_client_id)
 
-    def __process_client_bets(self, client: ServerProtocol):
+    def __process_client_bets(self, client: ServerProtocol, client_id):
         receiving_bets = True
 
         while receiving_bets:
@@ -70,12 +70,14 @@ class Server:
             if not keep_reading:
                 break
             if msg == '':
+                self._clients[client_id].shutdown()
                 break
             bets, errors = self.__create_bet_from_message(msg)
             if errors > 0: 
                 logging.error(f"action: apuesta_recibida | result: fail | cantidad: {errors}")
                 client.send_bad_bets(errors)
-                return
+                self._clients[client_id].shutdown()
+                return 
             store_bets(bets)   
             logging.info(f"action: apuesta_recibida | result: success | cantidad: {len(bets)}")
             client.send_batches_received_successfully(len(bets))

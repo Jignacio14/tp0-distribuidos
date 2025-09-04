@@ -96,7 +96,6 @@ func (c *Client) StartClientLoop() {
 	}
 
 	if err != nil && should_wait_end {
-		_ = c.waitForEnding()
 		return
 	}
 
@@ -132,7 +131,7 @@ func (c *Client) loop(batchGenerator *BatchGenerator) (error, bool) {
 
 		if !status {
 			log.Errorf("action: apuesta_recibida | result: fail | cantidad: %v ", bets_processed)
-			return err, true
+			return fmt.Errorf("apuestas con error"), true
 		}
 	}
 
