@@ -4,7 +4,7 @@ import logging
 
 from common.protocol import ServerProtocol
 from common.utils import has_won, load_bets, store_bets
-from multiprocessing import Process, Barrier, Lock
+from multiprocessing import Process, Barrier, Lock, Event
 from common.utils import Bet
 
 DELIMITER = ','
@@ -22,6 +22,7 @@ class Server:
         self._barrier = Barrier(clients_num)
         self._lock = Lock()
         self._client_processes : list[Process] = []
+        self._shutdown_event = Event()
         signal.signal(signal.SIGTERM, self.__handle_sigterm)
 
 
@@ -34,7 +35,7 @@ class Server:
         finishes, servers starts to accept new connections again
         """
         try:
-            while self._is_running:
+            while self._is_running :
                 self._client = self.__accept_new_connection()
                 client_process = Process(target=self.__handle_client_connection, args=(self._client,))
                 client_process.start()
@@ -42,6 +43,7 @@ class Server:
             
             for process in self._client_processes:
                 process.join()
+                logging.info(f"action: client_process_terminated | result: success {process.pid}")
         except OSError as _:
             self._is_running = False
         finally:
@@ -54,32 +56,31 @@ class Server:
         If a problem arises in the communication with the client, the
         client socket will also be closed
         """
+        signal.signal(signal.SIGTERM, lambda s, f: client.shutdown()) 
         current_client_id = client.get_agency_id()
-        
         if current_client_id == -1:
             client.shutdown()
             return
         
-        self._clients[current_client_id] = self._clients.get(current_client_id, client)
+        # self._clients[current_client_id] = self._clients.get(current_client_id, client)
         self.__process_client_bets(client, current_client_id)
 
     def __process_client_bets(self, client: ServerProtocol, client_id):
         receiving_bets = True
 
-        while receiving_bets:
+        while receiving_bets and not self._shutdown_event.is_set():
+            if self._shutdown_event.is_set():
+                client.shutdown()
+                return
             keep_reading, msg = client.receive_batch()
             receiving_bets = keep_reading
             if not keep_reading:
-                break
-            if msg == '':
-                self._clients[client_id].shutdown()
                 break
             bets, errors = self.__create_bet_from_message(msg)
             if errors > 0: 
                 logging.error(f"action: apuesta_recibida | result: fail | cantidad: {errors}")
                 client.send_bad_bets(errors)
-                self._clients[client_id].shutdown()
-                self._barrier.wait()
+                client.shutdown()
                 return 
             self._lock.acquire()
             store_bets(bets)   
@@ -88,7 +89,7 @@ class Server:
             client.send_batches_received_successfully(len(bets))
         
         self._barrier.wait()
-        self.__send_winners_to_client(client_id)
+        self.__send_winners_to_client(client_id, client)
 
     def __inform_winners(self, agency_id: str) -> list[Bet]:
         return [bet.document for bet in load_bets() if bet.agency == agency_id and has_won(bet)]
@@ -105,19 +106,14 @@ class Server:
             bets.append(Bet(*splited))
         return bets, errors
 
-    def __send_winners_to_client(self, client_id: str):
+    def __send_winners_to_client(self, client_id: str, client: ServerProtocol):
         winners = self.__inform_winners(client_id)
         try:
-            self._clients[client_id].send_winners(winners)
+            client.send_winners(winners)
             logging.info(f"action: informar_ganadores | result: success | cantidad: {len(winners)}")
             self._is_running = False
         except OSError as e:
             logging.error(f"action: informar_ganadores | result: fail | error: {e}")
-
-    def __shutdown_clients(self):
-        for client in self._clients.values():
-            client.shutdown()
-        self._clients = {}
 
     def __accept_new_connection(self):
         """
@@ -144,9 +140,20 @@ class Server:
             return
 
     def __shutdown(self):
+        self._shutdown_event.set()
         self._server_socket = self.__close_skt(self._server_socket)
-        self.__shutdown_clients()
         self._is_running = False
+
+    def __shutdown_client_processes(self, client: ServerProtocol):
+        if not client:
+            logging.error("action: shutdown_client_processes | result: fail | error: no_client")
+            return
+        try:
+            client.shutdown()
+        except Exception as e:
+            logging.error(f"action: shutdown_client_processes | result: fail | error: {e}")
+            return
+        
 
     def __close_skt(self, skt): 
         if not skt:

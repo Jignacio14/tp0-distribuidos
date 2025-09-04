@@ -29,7 +29,7 @@ class ServerProtocol:
             return True, client_info
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
-            return True, ''
+            return False, ''
     
     def __receive_op_code(self) -> int:
         op_code_byte = self.__receive_all(OP_CODE_LEN)
@@ -67,6 +67,8 @@ class ServerProtocol:
         self.__send_template(BATCH_RECEIVED_FAIL_CODE, count)
 
     def send_batches_received_successfully(self, bets_count: int):
+        if not self._client_skt:
+            return
         self.__send_template(BATCH_RECEIVED_OK_CODE, bets_count)
 
     def __send_template(self, code: int, number: int):
@@ -116,6 +118,8 @@ class ServerProtocol:
 
     def shutdown(self):
         try:
+            if not self._client_skt:
+                return 
             self._client_skt.shutdown(socket.SHUT_RDWR)
             self._client_skt.close()
         except OSError as e:
