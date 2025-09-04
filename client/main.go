@@ -115,6 +115,4 @@ func main() {
 
 	client := common.NewClient(clientConfig)
 	client.StartClientLoop()
-	log.Infof("action: exit | result: success")
-	os.Exit(0)
 }
