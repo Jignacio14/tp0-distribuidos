@@ -179,7 +179,6 @@ Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/
 
 La corrección personal tendrá en cuenta la calidad del código entregado y casos de error posibles, se manifiesten o no durante la ejecución del trabajo práctico. Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
 
-<<<<<<< HEAD
 # Respuestas 
 
 ## Ej1
@@ -322,38 +321,10 @@ Server -> Mensaje de fin de procesamiento
 ```
 
 
+## Ej7
 
+Para el sorteo se usa toda la base del protocolo ya existente, esta vez se configuro en una constante en el generador del docker compose como variable de entono para definir la cantidad de clientes. 
 
+Una vez que se alcanza la cantidad de clientes esperada, simplemente se procede a hacer el envio de los mensajes del sorteo a cada cliente considerando enviarle a cada cliente solamente los ganadores de su loteria y no todos los elementos, el nuevo es bastante parecido a la a la logica del intercambio de las apuestas.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+El mensaje tiene un codigo de mensaje, una longitud y los dnis de los ganadores de la loteria
